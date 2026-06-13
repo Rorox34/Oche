@@ -145,12 +145,22 @@ assert.equal(r.players[0].score, 0);
 assert.deepEqual(r.players[0].marks, [0, 0, 0, 0, 0, 0, 0]);
 assert.equal(r.log.length, 0);
 
-// ===== Clavier intelligent : cibles encore ouvertes =====
+// ===== Clavier intelligent : cibles ouvertes, tous multiplicateurs =====
 let rec = createGame(cfg());
-assert.equal(recommendedDarts(rec.targets, rec.players[0]).length, 7, '7 cibles ouvertes au départ');
+const recs0 = recommendedDarts(rec.targets, rec.players[0]);
+assert.equal(new Set(recs0.map((d) => d.value)).size, 7, '7 cibles ouvertes au départ');
+// un numéro ouvert est éclairé en simple, double ET triple
+assert.ok(recs0.some((d) => d.value === 20 && d.multiplier === 1));
+assert.ok(recs0.some((d) => d.value === 20 && d.multiplier === 2));
+assert.ok(recs0.some((d) => d.value === 20 && d.multiplier === 3));
+// le bull en simple et double, jamais en triple (T25 invalide)
+assert.ok(recs0.some((d) => d.value === 25 && d.multiplier === 1));
+assert.ok(recs0.some((d) => d.value === 25 && d.multiplier === 2));
+assert.ok(!recs0.some((d) => d.value === 25 && d.multiplier === 3), 'pas de triple bull');
+assert.equal(recs0[0].multiplier, 1, 'les simples en tête (primaire conservé en mode simple)');
 rec = reduce(rec, dart(20, 3)); // ferme 20
 const recs = recommendedDarts(rec.targets, rec.players[0]);
-assert.equal(recs.length, 6, '20 fermé : 6 cibles restantes');
+assert.equal(new Set(recs.map((d) => d.value)).size, 6, '20 fermé : 6 cibles restantes');
 assert.ok(!recs.some((d) => d.value === 20), '20 fermé n’est plus recommandé');
 
 // ===== Formatage =====

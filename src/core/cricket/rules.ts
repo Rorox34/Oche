@@ -110,18 +110,31 @@ export const VARIANTS: Record<CricketVariant, VariantSpec> = {
 };
 
 /**
- * Fléchettes utiles pour le joueur courant (clavier intelligent) : un simple
- * sur chaque cible qu'il n'a pas encore fermée, dans l'ordre d'affichage.
+ * Fléchettes utiles pour le joueur courant (clavier intelligent) : chaque cible
+ * qu'il n'a pas encore fermée, déclinée pour **tous les multiplicateurs qui la
+ * font avancer** (simple/double/triple pour un numéro, simple/double pour le
+ * bull). Au Cricket toute touche compte : les cibles ouvertes restent ainsi
+ * éclairées que le clavier soit en simple, double ou triple. Les simples sont
+ * placés en tête pour conserver le meilleur numéro en surbrillance primaire.
  * Une cible non fermée par le joueur ne peut être morte — pas de filtre requis.
  */
 export function recommendedDarts(
   targets: CricketTarget[],
   player: CricketPlayer,
 ): Dart[] {
-  const out: Dart[] = [];
-  targets.forEach((target, i) => {
-    if (player.marks[i] >= MARKS_TO_CLOSE) return;
-    out.push(target.kind === 'bull' ? { value: 25, multiplier: 1 } : { value: target.value, multiplier: 1 });
+  const open = targets.filter((_, i) => player.marks[i] < MARKS_TO_CLOSE);
+  const singles: Dart[] = [];
+  const doubles: Dart[] = [];
+  const triples: Dart[] = [];
+  open.forEach((target) => {
+    if (target.kind === 'bull') {
+      singles.push({ value: 25, multiplier: 1 });
+      doubles.push({ value: 25, multiplier: 2 });
+    } else {
+      singles.push({ value: target.value, multiplier: 1 });
+      doubles.push({ value: target.value, multiplier: 2 });
+      triples.push({ value: target.value, multiplier: 3 });
+    }
   });
-  return out;
+  return [...singles, ...doubles, ...triples];
 }
