@@ -1,6 +1,7 @@
 import { gameModes } from '../modes/registry';
 import { useAppStore } from '../store/appStore';
 import { Button } from '../components/Button';
+import { SettingsButton } from '../components/Settings';
 
 export function HomeScreen() {
   const game = useAppStore((s) => s.game);
@@ -10,11 +11,14 @@ export function HomeScreen() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-8 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(3rem,env(safe-area-inset-top))]">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-display text-7xl font-bold uppercase leading-none tracking-tight">
-          Oche
-        </h1>
-        <p className="text-muted">Compteur de fléchettes</p>
+      <header className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-display text-7xl font-bold uppercase leading-none tracking-tight">
+            Oche
+          </h1>
+          <p className="text-muted">Compteur de fléchettes</p>
+        </div>
+        <SettingsButton className="-mr-1 mt-1" />
       </header>
 
       {game && (

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
 import { themes } from '../themes';
+import { Button } from './Button';
 import { Segmented } from './Segmented';
 
 /** Icône engrenage (Feather « settings »). */
@@ -23,13 +24,30 @@ function GearIcon() {
   );
 }
 
-/**
- * Bouton engrenage fixe (haut-droite) + page d'options en overlay.
- * Rendu au niveau du shell : disponible sur tous les écrans, à tout moment.
- */
-export function Settings() {
+/** Bouton engrenage à placer dans l'en-tête d'un écran ; ouvre la page d'options. */
+export function SettingsButton({ className = '' }: { className?: string }) {
   const open = useAppStore((s) => s.settingsOpen);
   const openSettings = useAppStore((s) => s.openSettings);
+  return (
+    <Button
+      variant="ghost"
+      onClick={openSettings}
+      aria-label="Options"
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      className={`min-h-12 shrink-0 px-2.5 ${className}`}
+    >
+      <GearIcon />
+    </Button>
+  );
+}
+
+/**
+ * Page d'options en overlay, rendue une seule fois dans le shell.
+ * Le déclencheur est <SettingsButton>, placé dans l'en-tête de chaque écran.
+ */
+export function SettingsOverlay() {
+  const open = useAppStore((s) => s.settingsOpen);
   const closeSettings = useAppStore((s) => s.closeSettings);
   const settings = useAppStore((s) => s.settings);
   const setTheme = useAppStore((s) => s.setTheme);
@@ -44,74 +62,58 @@ export function Settings() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, closeSettings]);
 
+  if (!open) return null;
+
   return (
-    <>
-      <button
-        type="button"
-        onClick={openSettings}
-        aria-label="Options"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        className="fixed right-[max(0.75rem,env(safe-area-inset-right))] top-[max(0.75rem,env(safe-area-inset-top))] z-30
-          flex min-h-11 min-w-11 items-center justify-center rounded-full border border-line bg-surface/80 text-muted
-          backdrop-blur transition-colors touch-manipulation active:scale-[0.95] active:text-cream
-          focus-visible:outline-2 focus-visible:outline-cream"
-      >
-        <GearIcon />
-      </button>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Options"
+      className="fixed inset-0 z-[70] flex items-start justify-center bg-board/90 p-6
+        pt-[max(3rem,env(safe-area-inset-top))] backdrop-blur-sm"
+      onPointerDown={(e) => {
+        if (e.target === e.currentTarget) closeSettings();
+      }}
+    >
+      <div className="flex w-full max-w-md flex-col gap-6 rounded-3xl border border-line bg-surface p-6">
+        <header className="flex items-center justify-between">
+          <h2 className="font-display text-2xl font-bold uppercase tracking-wide">Options</h2>
+          <button
+            type="button"
+            onClick={closeSettings}
+            aria-label="Fermer les options"
+            className="min-h-11 min-w-11 rounded-xl text-muted touch-manipulation active:text-cream
+              focus-visible:outline-2 focus-visible:outline-cream"
+          >
+            ✕
+          </button>
+        </header>
 
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Options"
-          className="fixed inset-0 z-[70] flex items-start justify-center bg-board/90 p-6
-            pt-[max(3rem,env(safe-area-inset-top))] backdrop-blur-sm"
-          onPointerDown={(e) => {
-            if (e.target === e.currentTarget) closeSettings();
-          }}
-        >
-          <div className="flex w-full max-w-md flex-col gap-6 rounded-3xl border border-line bg-surface p-6">
-            <header className="flex items-center justify-between">
-              <h2 className="font-display text-2xl font-bold uppercase tracking-wide">Options</h2>
-              <button
-                type="button"
-                onClick={closeSettings}
-                aria-label="Fermer les options"
-                className="min-h-11 min-w-11 rounded-xl text-muted touch-manipulation active:text-cream
-                  focus-visible:outline-2 focus-visible:outline-cream"
-              >
-                ✕
-              </button>
-            </header>
-
-            <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted">Thème</span>
-              <Segmented
-                label="Thème"
-                value={settings.themeId}
-                onChange={setTheme}
-                options={themes.map((t) => ({ value: t.id, label: t.name }))}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted">
-                Clavier intelligent — met en évidence les meilleures fléchettes près d'un finish
-              </span>
-              <Segmented
-                label="Clavier intelligent"
-                value={settings.smartKeypad}
-                onChange={setSmartKeypad}
-                options={[
-                  { value: true, label: 'Activé' },
-                  { value: false, label: 'Désactivé' },
-                ]}
-              />
-            </div>
-          </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-muted">Thème</span>
+          <Segmented
+            label="Thème"
+            value={settings.themeId}
+            onChange={setTheme}
+            options={themes.map((t) => ({ value: t.id, label: t.name }))}
+          />
         </div>
-      )}
-    </>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-muted">
+            Clavier intelligent — met en évidence les meilleures fléchettes près d'un finish
+          </span>
+          <Segmented
+            label="Clavier intelligent"
+            value={settings.smartKeypad}
+            onChange={setSmartKeypad}
+            options={[
+              { value: true, label: 'Activé' },
+              { value: false, label: 'Désactivé' },
+            ]}
+          />
+        </div>
+      </div>
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import { Button } from '../../components/Button';
 import { Segmented } from '../../components/Segmented';
 import { FormSection } from '../../components/FormSection';
 import { PlayerNamesField } from '../../components/PlayerNamesField';
+import { SettingsButton } from '../../components/Settings';
 
 export function AtcSetup({ onStart, onBack }: SetupScreenProps<AtcConfig>) {
   const [segmentRule, setSegmentRule] = useState<AtcSegmentRule>('any');
@@ -33,9 +34,10 @@ export function AtcSetup({ onStart, onBack }: SetupScreenProps<AtcConfig>) {
         <Button variant="ghost" onClick={onBack} aria-label="Retour à l'accueil" className="min-h-12 px-3">
           ←
         </Button>
-        <h1 className="font-display text-3xl font-bold uppercase tracking-wide">
+        <h1 className="min-w-0 font-display text-3xl font-bold uppercase tracking-wide">
           Around the Clock
         </h1>
+        <SettingsButton className="ml-auto" />
       </header>
 
       <FormSection label="Segments valides">

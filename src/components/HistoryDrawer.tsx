@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import type { Dart } from '../core/darts';
+import { Button } from './Button';
 import { DartBadge } from './DartBadge';
 
 /** Modèle de vue neutre : chaque mode mappe son journal vers ce format. */
@@ -17,45 +18,78 @@ const BADGE_TONES = {
   green: 'border-green/50 bg-green/15 text-green',
 } as const;
 
+/** Icône historique (horloge à flèche anti-horaire). */
+function HistoryIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="22"
+      height="22"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 3v5h5" />
+      <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
+/** Bouton à placer dans l'en-tête : ouvre le tiroir d'historique. */
+export function HistoryButton({
+  open,
+  onClick,
+  className = '',
+}: {
+  open: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      onClick={onClick}
+      aria-label="Ouvrir l'historique des lancers"
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      className={`min-h-12 shrink-0 px-2.5 ${className}`}
+    >
+      <HistoryIcon />
+    </Button>
+  );
+}
+
 interface Props {
   /** Entrées chronologiques (la plus ancienne en premier). */
   entries: HistoryViewEntry[];
+  open: boolean;
+  onClose: () => void;
 }
 
 /**
- * Panneau coulissant d'historique : encoche discrète sur le bord droit,
- * n'occupe jamais l'écran en permanence. Partagé par tous les modes.
+ * Panneau coulissant d'historique (contrôlé). Le déclencheur est
+ * <HistoryButton>, placé dans l'en-tête. Partagé par tous les modes.
  */
-export function HistoryDrawer({ entries }: Props) {
-  const [open, setOpen] = useState(false);
-
+export function HistoryDrawer({ entries, open, onClose }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [open, onClose]);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Ouvrir l'historique des lancers"
-        aria-expanded={open}
-        className="fixed right-0 top-1/2 z-20 -translate-y-1/2 rounded-l-xl border border-r-0 border-line
-          bg-surface px-1.5 py-5 text-muted transition-colors touch-manipulation active:text-cream
-          focus-visible:outline-2 focus-visible:outline-cream"
-      >
-        <span aria-hidden="true" className="font-display text-lg">‹</span>
-      </button>
-
       {open && (
         <div
           className="fixed inset-0 z-40 bg-board/60"
-          onPointerDown={() => setOpen(false)}
+          onPointerDown={onClose}
           aria-hidden="true"
         />
       )}
@@ -73,7 +107,7 @@ export function HistoryDrawer({ entries }: Props) {
           <h2 className="font-display text-xl font-bold uppercase tracking-wide">Historique</h2>
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={onClose}
             aria-label="Fermer l'historique"
             className="min-h-11 min-w-11 rounded-xl text-muted touch-manipulation active:text-cream
               focus-visible:outline-2 focus-visible:outline-cream"

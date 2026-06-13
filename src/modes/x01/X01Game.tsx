@@ -9,7 +9,8 @@ import { useAppStore } from '../../store/appStore';
 import { Button } from '../../components/Button';
 import { DartKeypad } from '../../components/DartKeypad';
 import { DartBadge } from '../../components/DartBadge';
-import { HistoryDrawer, type HistoryViewEntry } from '../../components/HistoryDrawer';
+import { HistoryDrawer, HistoryButton, type HistoryViewEntry } from '../../components/HistoryDrawer';
+import { SettingsButton } from '../../components/Settings';
 import { VictoryOverlay } from '../../components/VictoryOverlay';
 import { PlayerCard } from './PlayerCard';
 import { FinishPanel } from './FinishPanel';
@@ -26,6 +27,7 @@ export function X01Game({
   const { players, currentPlayer, currentVisit, config, phase, winner } = state;
   const current = players[currentPlayer];
   const smartKeypad = useAppStore((s) => s.settings.smartKeypad);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const dartsLeft = 3 - currentVisit.length;
 
@@ -75,14 +77,15 @@ export function X01Game({
 
   return (
     <div className="mx-auto flex h-dvh w-full max-w-md flex-col gap-2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center gap-1">
         <Button variant="ghost" onClick={quit} aria-label="Quitter la partie" className="min-h-12 px-3">
           ✕
         </Button>
-        <span className="font-display text-base font-semibold uppercase tracking-widest text-muted">
+        <span className="min-w-0 flex-1 truncate text-center font-display text-base font-semibold uppercase tracking-widest text-muted">
           {formatRulesShort(config)}
         </span>
-        <span className="w-12" aria-hidden="true" />
+        <HistoryButton open={historyOpen} onClick={() => setHistoryOpen(true)} />
+        <SettingsButton />
       </header>
 
       <div className={`grid gap-2 ${gridCols}`}>
@@ -137,7 +140,11 @@ export function X01Game({
         />
       </div>
 
-      <HistoryDrawer entries={historyEntries} />
+      <HistoryDrawer
+        entries={historyEntries}
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+      />
 
       {bustVisible && <BustOverlay key={state.bustCount} onClose={hideBust} />}
 

@@ -5,6 +5,7 @@ import { Button } from '../../components/Button';
 import { Segmented } from '../../components/Segmented';
 import { FormSection } from '../../components/FormSection';
 import { PlayerNamesField } from '../../components/PlayerNamesField';
+import { SettingsButton } from '../../components/Settings';
 
 export function X01Setup({ onStart, onBack }: SetupScreenProps<X01Config>) {
   const [startScore, setStartScore] = useState<301 | 501>(501);
@@ -29,6 +30,7 @@ export function X01Setup({ onStart, onBack }: SetupScreenProps<X01Config>) {
           ←
         </Button>
         <h1 className="font-display text-3xl font-bold uppercase tracking-wide">301 / 501</h1>
+        <SettingsButton className="ml-auto" />
       </header>
 
       <FormSection label="Score de départ">
