@@ -1,0 +1,91 @@
+import { gameModes } from '../modes/registry';
+import { useAppStore } from '../store/appStore';
+import { themes } from '../themes';
+import { Button } from '../components/Button';
+import { Segmented } from '../components/Segmented';
+
+export function HomeScreen() {
+  const game = useAppStore((s) => s.game);
+  const settings = useAppStore((s) => s.settings);
+  const resumeGame = useAppStore((s) => s.resumeGame);
+  const quitGame = useAppStore((s) => s.quitGame);
+  const openSetup = useAppStore((s) => s.openSetup);
+  const setTheme = useAppStore((s) => s.setTheme);
+  const setSmartKeypad = useAppStore((s) => s.setSmartKeypad);
+
+  return (
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-8 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(3rem,env(safe-area-inset-top))]">
+      <header className="flex flex-col gap-1">
+        <h1 className="font-display text-7xl font-bold uppercase leading-none tracking-tight">
+          Oche
+        </h1>
+        <p className="text-muted">Compteur de fléchettes</p>
+      </header>
+
+      {game && (
+        <section
+          aria-label="Partie en cours"
+          className="flex flex-col gap-2 rounded-3xl border border-accent/60 bg-surface p-4"
+        >
+          <span className="font-display text-sm font-semibold uppercase tracking-widest text-accent">
+            Partie en cours
+          </span>
+          <Button variant="primary" onClick={resumeGame}>
+            Reprendre
+          </Button>
+          <Button variant="ghost" onClick={quitGame}>
+            Abandonner la partie
+          </Button>
+        </section>
+      )}
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-muted">
+          Modes de jeu
+        </h2>
+        {gameModes.map((mode) => (
+          <button
+            type="button"
+            key={mode.id}
+            onClick={() => openSetup(mode.id)}
+            className="flex flex-col items-start gap-1 rounded-3xl border border-line bg-surface p-5 text-left
+              transition-transform duration-75 touch-manipulation active:scale-[0.98]
+              focus-visible:outline-2 focus-visible:outline-cream"
+          >
+            <span className="font-display text-3xl font-bold text-cream">{mode.name}</span>
+            <span className="text-sm text-muted">{mode.description}</span>
+          </button>
+        ))}
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-muted">
+          Préférences
+        </h2>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-muted">Thème</span>
+          <Segmented
+            label="Thème"
+            value={settings.themeId}
+            onChange={setTheme}
+            options={themes.map((t) => ({ value: t.id, label: t.name }))}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-muted">
+            Clavier intelligent — met en évidence les meilleures fléchettes près d'un finish
+          </span>
+          <Segmented
+            label="Clavier intelligent"
+            value={settings.smartKeypad}
+            onChange={setSmartKeypad}
+            options={[
+              { value: true, label: 'Activé' },
+              { value: false, label: 'Désactivé' },
+            ]}
+          />
+        </div>
+      </section>
+    </div>
+  );
+}

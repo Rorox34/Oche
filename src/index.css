@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/*
+ * Les utilitaires Tailwind (bg-board, text-cream, border-line…) pointent vers
+ * des variables --t-* redéfinies par thème via [data-theme] sur <html>.
+ * Ajouter un thème = un bloc CSS ici + une entrée dans src/themes/index.ts.
+ */
+@theme inline {
+  --color-board: var(--t-board);
+  --color-surface: var(--t-surface);
+  --color-line: var(--t-line);
+  --color-cream: var(--t-cream);
+  --color-muted: var(--t-muted);
+  --color-red: var(--t-red);
+  --color-green: var(--t-green);
+  --color-accent: var(--t-accent);
+  --color-gold: var(--t-gold);
+
+  --font-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Dark Classic — noir profond, lisibilité maximale. */
+:root,
+:root[data-theme="dark-classic"] {
+  --t-board: #08090b;
+  --t-surface: #14171c;
+  --t-line: #272c34;
+  --t-cream: #f5f3ea;
+  --t-muted: #9aa3ad;
+  --t-red: #e2492f;
+  --t-green: #2fb673;
+  --t-accent: #e2492f;
+  --t-gold: #e3b341;
+}
+
+/* Light Professional — fond clair, contraste élevé. */
+:root[data-theme="light-pro"] {
+  --t-board: #f4f3ee;
+  --t-surface: #ffffff;
+  --t-line: #d6d4ca;
+  --t-cream: #15191d;
+  --t-muted: #5b6268;
+  --t-red: #c0361e;
+  --t-green: #0f7a4a;
+  --t-accent: #1d4ed8;
+  --t-gold: #996c08;
+}
+
+/* Tournament Color — bleu profond de scène, accents vifs. */
+:root[data-theme="tournament"] {
+  --t-board: #0a1226;
+  --t-surface: #131f42;
+  --t-line: #2a3c70;
+  --t-cream: #f8fafc;
+  --t-muted: #94a7cc;
+  --t-red: #ff4d3a;
+  --t-green: #21d07d;
+  --t-accent: #ffb020;
+  --t-gold: #ffd34d;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-board font-sans text-cream antialiased;
+  overscroll-behavior: none;
+}
+
+/* Animation BUST : apparition rapide, disparition automatique (~1 s). */
+@keyframes bust-pop {
+  0% { transform: scale(0.4) rotate(-6deg); opacity: 0; }
+  18% { transform: scale(1.12) rotate(2deg); opacity: 1; }
+  32% { transform: scale(1) rotate(0deg); opacity: 1; }
+  78% { opacity: 1; }
+  100% { transform: scale(1.04); opacity: 0; }
+}
+.bust-pop { animation: bust-pop 1s ease-out both; }
+
+/* Écran de victoire : entrée valorisante + halo doré. */
+@keyframes victory-pop {
+  0% { transform: scale(0.85) translateY(16px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.victory-pop { animation: victory-pop 0.35s ease-out both; }
+
+@keyframes gold-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--t-gold) 30%, transparent); }
+  50% { box-shadow: 0 0 42px 6px color-mix(in srgb, var(--t-gold) 30%, transparent); }
+}
+.gold-pulse { animation: gold-pulse 2.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
