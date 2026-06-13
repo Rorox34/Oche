@@ -4,6 +4,7 @@ import { getTheme } from './themes';
 import { HomeScreen } from './screens/HomeScreen';
 import { SetupScreen } from './screens/SetupScreen';
 import { GameScreen } from './screens/GameScreen';
+import { Settings } from './components/Settings';
 
 export default function App() {
   const screen = useAppStore((s) => s.screen);
@@ -16,7 +17,10 @@ export default function App() {
       ?.setAttribute('content', getTheme(themeId).boardColor);
   }, [themeId]);
 
-  if (screen === 'setup') return <SetupScreen />;
-  if (screen === 'game') return <GameScreen />;
-  return <HomeScreen />;
+  return (
+    <>
+      {screen === 'setup' ? <SetupScreen /> : screen === 'game' ? <GameScreen /> : <HomeScreen />}
+      <Settings />
+    </>
+  );
 }

@@ -24,6 +24,10 @@ interface AppState {
   setupModeId: string | null;
   game: ActiveGame | null;
   settings: Settings;
+  /** Overlay d'options, accessible depuis n'importe quel écran (non persisté). */
+  settingsOpen: boolean;
+  openSettings: () => void;
+  closeSettings: () => void;
   goHome: () => void;
   openSetup: (modeId: string) => void;
   startGame: (modeId: string, config: unknown) => void;
@@ -44,6 +48,10 @@ export const useAppStore = create<AppState>()(
       setupModeId: null,
       game: null,
       settings: DEFAULT_SETTINGS,
+      settingsOpen: false,
+
+      openSettings: () => set({ settingsOpen: true }),
+      closeSettings: () => set({ settingsOpen: false }),
 
       goHome: () => set({ screen: 'home' }),
 

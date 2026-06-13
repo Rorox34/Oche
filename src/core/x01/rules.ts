@@ -1,5 +1,4 @@
 import type { Dart, InRule, OutRule } from './types.ts';
-import { dartScore } from '../darts.ts';
 
 export { dartScore, isValidDart } from '../darts.ts';
 
