@@ -1,10 +1,11 @@
 # Oche — Compteur de fléchettes (PWA)
 
-Compteur de fléchettes mobile-first. Trois modes : **301 / 501** (règles
+Compteur de fléchettes mobile-first. Quatre modes : **301 / 501** (règles
 d'entrée/sortie complètes, suggestions de finish, clavier intelligent),
 **Around the Clock** (variantes de segments, ordres dont l'ordre réel du
-plateau, bull final, multi-touches, chrono) et **Cricket** (Standard,
-Cut-Throat, Sans points). Options accessibles partout via l'engrenage en
+plateau, bull final, multi-touches, chrono), **Cricket** (Standard, Cut-Throat,
+Sans points) et **Shanghai** (manches 1→7/10/20, ordre croissant ou aléatoire,
+victoire Shanghai S+D+T). Options accessibles partout via l'engrenage en
 en-tête. Thèmes, historique coulissant, statistiques en direct, écran de
 victoire, undo illimité, partie persistée hors-ligne.
 
@@ -23,6 +24,7 @@ Tests du moteur de jeu (sans installation, Node ≥ 22.6) :
 node --experimental-strip-types tests/engine.test.mjs   # moteur 301/501
 node --experimental-strip-types tests/atc.test.mjs      # moteur Around the Clock
 node --experimental-strip-types tests/cricket.test.mjs  # moteur Cricket
+node --experimental-strip-types tests/shanghai.test.mjs # moteur Shanghai
 ```
 
 ## Règles supportées
@@ -55,17 +57,23 @@ src/
 │   │   ├── rules.ts   #   countsForTarget : variantes de touche centralisées
 │   │   ├── engine.ts  #   réducteur : progression, hits par cible, victoire, chrono
 │   │   └── format.ts  #   libellés des variantes, durée
-│   └── cricket/       # Moteur Cricket (pur, indépendant) :
-│       ├── targets.ts #   jeu de cibles (20→15 + Bull)
-│       ├── rules.ts   #   VARIANTS : score, distribution des points, victoire
-│       ├── engine.ts  #   réducteur : marques, fermeture, score, MPR
-│       └── format.ts  #   libellés des variantes et cibles
+│   ├── cricket/       # Moteur Cricket (pur, indépendant) :
+│   │   ├── targets.ts #   jeu de cibles (20→15 + Bull)
+│   │   ├── rules.ts   #   VARIANTS : score, distribution des points, victoire
+│   │   ├── engine.ts  #   réducteur : marques, fermeture, score, MPR
+│   │   └── format.ts  #   libellés des variantes et cibles
+│   └── shanghai/      # Moteur Shanghai (pur, indépendant) :
+│       ├── targets.ts #   suite des manches (1→N, croissant ou aléatoire)
+│       ├── rules.ts   #   score, détection du Shanghai (S+D+T)
+│       ├── engine.ts  #   réducteur : manches, rotation, victoire Shanghai
+│       └── format.ts  #   libellés des plages et de l'ordre
 ├── modes/
 │   ├── types.ts       # Contrat GameModeDefinition (createGame, reduce, écrans)
 │   ├── registry.ts    # Registre — ajouter un mode = 1 dossier + 1 ligne
 │   ├── x01/           # Écrans du mode 301/501
 │   ├── atc/           # Écrans du mode Around the Clock
-│   └── cricket/       # Écrans Cricket (Setup, Game, Board)
+│   ├── cricket/       # Écrans Cricket (Setup, Game, Board)
+│   └── shanghai/      # Écrans Shanghai (Setup, Game, PlayerCard)
 ├── components/        # Partagé : DartKeypad, DartBadge, HistoryDrawer,
 │                      #   VictoryOverlay, PlayerNamesField, Button, Segmented…
 ├── store/appStore.ts  # Zustand persist : navigation, partie, undo, réglages
@@ -108,9 +116,29 @@ intelligent la consomment sans modification. Le jeu de cibles est produit par
 `buildTargets(config)` ([`targets.ts`](src/core/cricket/targets.ts)), prêt à
 accepter des cibles aléatoires ou des variantes « Tactics » (doubles/triples).
 
+## Shanghai
+
+Une **manche par numéro** : à la manche *n* on ne vise que le numéro *n* avec 3
+fléchettes, et on marque `numéro × multiplicateur` (les autres numéros et le
+bull ne comptent pas). À la fin des manches, le **score le plus haut gagne**.
+
+Règle iconique — le **Shanghai** : réussir **Simple + Double + Triple** du numéro
+visé dans une même volée donne la **victoire immédiate**, quel que soit le score.
+
+| Réglage | Options |
+|---|---|
+| **Manches** | 1 → 7 (classique), 1 → 10, 1 → 20 |
+| **Ordre des numéros** | Croissant, Aléatoire (*Random Shanghai*) |
+| **Victoire Shanghai** | activable / désactivable |
+
+La suite des manches est produite par `buildTargets(config, rng)`
+([`targets.ts`](src/core/shanghai/targets.ts)) — l'ordre aléatoire est ré-tiré à
+chaque revanche. La détection du Shanghai et le score sont isolés dans
+[`rules.ts`](src/core/shanghai/rules.ts) (`isShanghai`, `scoreFor`).
+
 ## Ajouter un mode de jeu
 
-Le mode Cricket ci-dessus est l'illustration concrète de cette recette :
+Les modes Cricket et Shanghai ci-dessus illustrent concrètement cette recette :
 
 1. Créer `src/modes/<mode>/` avec un état, un réducteur pur et deux écrans.
 2. Exporter un `GameModeDefinition` (`createGame`, `reduce`, `SetupScreen`, `GameScreen`).
@@ -121,9 +149,9 @@ Le mode Cricket ci-dessus est l'illustration concrète de cette recette :
 
 - **Sets** : `legsToWin` existe déjà ; les sets sont un niveau au-dessus
   (compteur `setsWon` + condition de fin dans `engine.ts`), sans impact UI majeur.
-- **Killer / Shanghai / High Score** : nouveaux dossiers sous `modes/` via le
-  contrat `GameModeDefinition` — Around the Clock et Cricket servent de modèles
-  (cibles en union discriminée, règles centralisées dans un objet de variantes).
+- **Killer / High Score / Gotcha** : nouveaux dossiers sous `modes/` via le
+  contrat `GameModeDefinition` — Around the Clock, Cricket et Shanghai servent
+  de modèles (cibles/manches générées, règles et variantes centralisées).
 - **Profils locaux / statistiques globales** : le moteur produit déjà un
   journal (`state.log`) et des statistiques par joueur — un futur slice
   `profiles` du store peut les agréger à la fin de chaque partie.

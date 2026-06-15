@@ -2,6 +2,7 @@ import type { GameModeDefinition } from './types';
 import { x01Mode } from './x01';
 import { atcMode } from './atc';
 import { cricketMode } from './cricket';
+import { shanghaiMode } from './shanghai';
 
 /**
  * Le registre efface volontairement les génériques : le shell manipule des
@@ -11,7 +12,7 @@ import { cricketMode } from './cricket';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyGameMode = GameModeDefinition<any, any, any>;
 
-export const gameModes: AnyGameMode[] = [x01Mode, atcMode, cricketMode];
+export const gameModes: AnyGameMode[] = [x01Mode, atcMode, cricketMode, shanghaiMode];
 
 export function getMode(id: string): AnyGameMode {
   const mode = gameModes.find((m) => m.id === id);
