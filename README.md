@@ -1,13 +1,14 @@
 # Oche — Compteur de fléchettes (PWA)
 
-Compteur de fléchettes mobile-first. Quatre modes : **301 / 501** (règles
+Compteur de fléchettes mobile-first. Cinq modes : **301 / 501** (règles
 d'entrée/sortie complètes, suggestions de finish, clavier intelligent),
 **Around the Clock** (variantes de segments, ordres dont l'ordre réel du
 plateau, bull final, multi-touches, chrono), **Cricket** (Standard, Cut-Throat,
-Sans points) et **Shanghai** (manches 1→7/10/20, ordre croissant ou aléatoire,
-victoire Shanghai S+D+T). Options accessibles partout via l'engrenage en
-en-tête. Thèmes, historique coulissant, statistiques en direct, écran de
-victoire, undo illimité, partie persistée hors-ligne.
+Sans points), **Shanghai** (manches 1→7/10/20, ordre croissant ou aléatoire,
+victoire Shanghai S+D+T) et **Golf** (9 ou 18 trous, scoring Standard ou Au plus
+court). Options accessibles partout via l'engrenage en en-tête. Thèmes,
+historique coulissant, statistiques en direct, écran de victoire, undo illimité,
+partie persistée hors-ligne.
 
 ## Démarrage
 
@@ -25,6 +26,7 @@ node --experimental-strip-types tests/engine.test.mjs   # moteur 301/501
 node --experimental-strip-types tests/atc.test.mjs      # moteur Around the Clock
 node --experimental-strip-types tests/cricket.test.mjs  # moteur Cricket
 node --experimental-strip-types tests/shanghai.test.mjs # moteur Shanghai
+node --experimental-strip-types tests/golf.test.mjs     # moteur Golf
 ```
 
 ## Règles supportées
@@ -62,18 +64,24 @@ src/
 │   │   ├── rules.ts   #   VARIANTS : score, distribution des points, victoire
 │   │   ├── engine.ts  #   réducteur : marques, fermeture, score, MPR
 │   │   └── format.ts  #   libellés des variantes et cibles
-│   └── shanghai/      # Moteur Shanghai (pur, indépendant) :
-│       ├── targets.ts #   suite des manches (1→N, croissant ou aléatoire)
-│       ├── rules.ts   #   score, détection du Shanghai (S+D+T)
-│       ├── engine.ts  #   réducteur : manches, rotation, victoire Shanghai
-│       └── format.ts  #   libellés des plages et de l'ordre
+│   ├── shanghai/      # Moteur Shanghai (pur, indépendant) :
+│   │   ├── targets.ts #   suite des manches (1→N, croissant ou aléatoire)
+│   │   ├── rules.ts   #   score, détection du Shanghai (S+D+T)
+│   │   ├── engine.ts  #   réducteur : manches, rotation, victoire Shanghai
+│   │   └── format.ts  #   libellés des plages et de l'ordre
+│   └── golf/          # Moteur Golf (pur, indépendant) :
+│       ├── targets.ts #   numéros des trous (1→N)
+│       ├── rules.ts   #   VARIANTS : score d'un trou, par, provisoire
+│       ├── engine.ts  #   réducteur : trous, rotation, score relatif au par
+│       └── format.ts  #   libellés des variantes et score relatif
 ├── modes/
 │   ├── types.ts       # Contrat GameModeDefinition (createGame, reduce, écrans)
 │   ├── registry.ts    # Registre — ajouter un mode = 1 dossier + 1 ligne
 │   ├── x01/           # Écrans du mode 301/501
 │   ├── atc/           # Écrans du mode Around the Clock
 │   ├── cricket/       # Écrans Cricket (Setup, Game, Board)
-│   └── shanghai/      # Écrans Shanghai (Setup, Game, PlayerCard)
+│   ├── shanghai/      # Écrans Shanghai (Setup, Game, PlayerCard)
+│   └── golf/          # Écrans Golf (Setup, Game, Scorecard)
 ├── components/        # Partagé : DartKeypad, DartBadge, HistoryDrawer,
 │                      #   VictoryOverlay, PlayerNamesField, Button, Segmented…
 ├── store/appStore.ts  # Zustand persist : navigation, partie, undo, réglages
@@ -136,9 +144,25 @@ La suite des manches est produite par `buildTargets(config, rng)`
 chaque revanche. La détection du Shanghai et le score sont isolés dans
 [`rules.ts`](src/core/shanghai/rules.ts) (`isShanghai`, `scoreFor`).
 
+## Golf
+
+Comme au golf : **9 ou 18 trous**, le trou *n* correspond au **numéro *n*** sur
+la cible (3 fléchettes par trou). On marque des **coups** et le **score le plus
+bas gagne**. Le classement se juge au score relatif au par (par 3 par trou).
+
+| Réglage | Options |
+|---|---|
+| **Trous** | 9 (1 → 9), 18 (1 → 18) |
+| **Score** | **Standard** (meilleure fléchette : triple = 1, double = 2, simple = 3, manqué = 4) · **Au plus court** (nombre de fléchettes pour toucher, manqué = 4) |
+
+Les deux méthodes de score vivent dans l'objet `VARIANTS` de
+[`rules.ts`](src/core/golf/rules.ts) (`holeScore`) — ajouter un mode de score =
+une entrée. La carte de parcours code les coups en couleur (eagle / birdie / par
+/ bogey).
+
 ## Ajouter un mode de jeu
 
-Les modes Cricket et Shanghai ci-dessus illustrent concrètement cette recette :
+Les modes Cricket, Shanghai et Golf ci-dessus illustrent concrètement cette recette :
 
 1. Créer `src/modes/<mode>/` avec un état, un réducteur pur et deux écrans.
 2. Exporter un `GameModeDefinition` (`createGame`, `reduce`, `SetupScreen`, `GameScreen`).
@@ -150,8 +174,8 @@ Les modes Cricket et Shanghai ci-dessus illustrent concrètement cette recette :
 - **Sets** : `legsToWin` existe déjà ; les sets sont un niveau au-dessus
   (compteur `setsWon` + condition de fin dans `engine.ts`), sans impact UI majeur.
 - **Killer / High Score / Gotcha** : nouveaux dossiers sous `modes/` via le
-  contrat `GameModeDefinition` — Around the Clock, Cricket et Shanghai servent
-  de modèles (cibles/manches générées, règles et variantes centralisées).
+  contrat `GameModeDefinition` — Around the Clock, Cricket, Shanghai et Golf
+  servent de modèles (cibles/manches/trous générés, variantes centralisées).
 - **Profils locaux / statistiques globales** : le moteur produit déjà un
   journal (`state.log`) et des statistiques par joueur — un futur slice
   `profiles` du store peut les agréger à la fin de chaque partie.
