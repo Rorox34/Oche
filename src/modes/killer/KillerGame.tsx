@@ -32,6 +32,8 @@ export function KillerGame({
   );
 
   const livesTaken = visitLivesTaken(state);
+  const assigning = phase === 'assigning';
+  const takenNumbers = players.filter((p) => p.number > 0).map((p) => p.number);
 
   const instruction = (() => {
     if (me.inPrison) return `🔒 ${me.name} est en prison — touchez le Bull (25/50) pour sortir`;
@@ -84,40 +86,56 @@ export function KillerGame({
             <KillerPlayerCard
               key={i}
               player={p}
-              active={i === currentPlayer && phase === 'playing'}
+              active={i === currentPlayer && phase !== 'matchOver'}
               compact={players.length > 2}
+              assigning={assigning}
             />
           ))}
         </div>
       </div>
 
-      <p className="truncate text-center text-sm text-muted" role="status">
-        {instruction}
-      </p>
-
-      <div className="flex items-center gap-2">
-        {[0, 1, 2].map((i) => {
-          const dart = currentVisit[i];
-          return (
-            <div key={i} className="flex h-12 flex-1 items-center justify-center">
-              {dart ? (
-                <DartBadge dart={dart} />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-xl border border-line/60 text-muted/40">
-                  ·
-                </div>
-              )}
-            </div>
-          );
-        })}
-        <div
-          aria-label={`Vies retirées dans cette volée : ${livesTaken}`}
-          className={`flex h-12 min-w-16 items-center justify-center rounded-xl px-2 font-display text-xl font-bold tabular-nums
-            ${livesTaken > 0 ? 'bg-red text-cream' : 'bg-cream text-board'}`}
-        >
-          {livesTaken > 0 ? `−${livesTaken}` : '—'}
+      {assigning ? (
+        <div className="flex flex-col items-center gap-1 py-1" role="status">
+          <span className="text-sm uppercase tracking-widest text-muted">Attribution des numéros</span>
+          <span className="font-display text-2xl font-bold text-cream">
+            {me.name} choisit son numéro
+          </span>
+          <span className="text-xs text-muted">Lancer de la main faible — touchez votre numéro</span>
+          {takenNumbers.length > 0 && (
+            <span className="text-xs text-muted">Déjà pris : {takenNumbers.join(' · ')}</span>
+          )}
         </div>
-      </div>
+      ) : (
+        <>
+          <p className="truncate text-center text-sm text-muted" role="status">
+            {instruction}
+          </p>
+
+          <div className="flex items-center gap-2">
+            {[0, 1, 2].map((i) => {
+              const dart = currentVisit[i];
+              return (
+                <div key={i} className="flex h-12 flex-1 items-center justify-center">
+                  {dart ? (
+                    <DartBadge dart={dart} />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center rounded-xl border border-line/60 text-muted/40">
+                      ·
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div
+              aria-label={`Vies retirées dans cette volée : ${livesTaken}`}
+              className={`flex h-12 min-w-16 items-center justify-center rounded-xl px-2 font-display text-xl font-bold tabular-nums
+                ${livesTaken > 0 ? 'bg-red text-cream' : 'bg-cream text-board'}`}
+            >
+              {livesTaken > 0 ? `−${livesTaken}` : '—'}
+            </div>
+          </div>
+        </>
+      )}
 
       <div>
         <DartKeypad

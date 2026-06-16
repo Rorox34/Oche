@@ -5,6 +5,8 @@ interface Props {
   player: KillerPlayer;
   active: boolean;
   compact: boolean;
+  /** Phase d'attribution des numéros : on masque vies/statut. */
+  assigning?: boolean;
 }
 
 function Lives({ lives, maxLives }: { lives: number; maxLives: number }) {
@@ -27,8 +29,9 @@ function Lives({ lives, maxLives }: { lives: number; maxLives: number }) {
   );
 }
 
-export function KillerPlayerCard({ player, active, compact }: Props) {
-  const dead = player.lives <= 0;
+export function KillerPlayerCard({ player, active, compact, assigning = false }: Props) {
+  const dead = !assigning && player.lives <= 0;
+  const assigned = player.number > 0;
 
   return (
     <div
@@ -46,16 +49,25 @@ export function KillerPlayerCard({ player, active, compact }: Props) {
       <span className="mt-0.5 text-[0.6rem] uppercase tracking-widest text-muted">N°</span>
       <span
         className={`font-display font-bold leading-none tabular-nums
-          ${compact ? 'text-3xl' : 'text-5xl'} ${dead ? 'text-muted' : active ? 'text-cream' : 'text-muted'}`}
+          ${compact ? 'text-3xl' : 'text-5xl'} ${dead || !assigned ? 'text-muted' : active ? 'text-cream' : 'text-muted'}`}
       >
-        {player.number}
+        {assigned ? player.number : '—'}
       </span>
 
-      <span className="mt-1.5">
-        <Lives lives={player.lives} maxLives={player.maxLives} />
-      </span>
-
-      <span className="mt-1.5 text-[0.7rem] font-semibold text-muted">{statusLabel(player)}</span>
+      {assigning ? (
+        <span
+          className={`mt-2 text-[0.7rem] font-semibold ${active ? 'text-accent' : assigned ? 'text-green' : 'text-muted'}`}
+        >
+          {active ? 'à vous…' : assigned ? '✓ prêt' : 'en attente'}
+        </span>
+      ) : (
+        <>
+          <span className="mt-1.5">
+            <Lives lives={player.lives} maxLives={player.maxLives} />
+          </span>
+          <span className="mt-1.5 text-[0.7rem] font-semibold text-muted">{statusLabel(player)}</span>
+        </>
+      )}
     </div>
   );
 }

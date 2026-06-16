@@ -6,6 +6,11 @@ export const ENTRY_LABELS = {
   prison: 'Prison',
 } as const;
 
+export const NUMBER_MODE_LABELS = {
+  choice: 'Au choix',
+  random: 'Aléatoire',
+} as const;
+
 const ENTRY_DESCRIPTIONS = {
   bull: 'Touchez 25 ou 50 pour devenir tueur, puis visez les numéros adverses.',
   double: 'Touchez le double de votre numéro pour devenir tueur.',
@@ -22,7 +27,11 @@ export function formatVariantShort(config: KillerConfig): string {
 
 /** Libellé complet (écran de victoire). */
 export function formatVariant(config: KillerConfig): string {
-  const parts = [`${config.lives} vies`, `Entrée : ${ENTRY_LABELS[config.entry]}`];
+  const parts = [
+    `${config.lives} vies`,
+    `Entrée : ${ENTRY_LABELS[config.entry]}`,
+    `Numéros : ${NUMBER_MODE_LABELS[config.numberMode]}`,
+  ];
   if (config.healOnKill) parts.push('Soin sur élimination');
   return parts.join(' · ');
 }

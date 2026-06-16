@@ -3,14 +3,22 @@ import { createGame, reduce, visitLivesTaken } from '../src/core/killer/engine.t
 import { recommendedDarts, aliveCount, canAttack, isEliminated } from '../src/core/killer/rules.ts';
 import { formatVariant, formatVariantShort, statusLabel, formatEvent } from '../src/core/killer/format.ts';
 
-const cfg = (over = {}) => ({ lives: 3, entry: 'bull', healOnKill: false, playerNames: ['A', 'B', 'C'], ...over });
+const cfg = (over = {}) => ({
+  lives: 3,
+  entry: 'bull',
+  numberMode: 'random',
+  healOnKill: false,
+  playerNames: ['A', 'B', 'C'],
+  ...over,
+});
 const dart = (value, multiplier = 1) => ({ type: 'dart', dart: { value, multiplier } });
 const bull = (m = 1) => dart(25, m);
 const setPlayers = (s, fn) => ({ ...s, players: s.players.map(fn) });
 
-// ===== Attribution des numéros =====
+// ===== Attribution aléatoire =====
 const g0 = createGame(cfg());
 const nums = g0.players.map((p) => p.number);
+assert.equal(g0.phase, 'playing', 'mode aléatoire : on joue directement');
 assert.equal(new Set(nums).size, 3, 'numéros distincts');
 nums.forEach((n) => assert.ok(n >= 1 && n <= 20));
 g0.players.forEach((p) => {
@@ -18,6 +26,34 @@ g0.players.forEach((p) => {
   assert.equal(p.isKiller, false);
   assert.equal(p.inPrison, false);
 });
+
+// ===== Attribution « au choix » : phase d'attribution =====
+let ch = createGame(cfg({ numberMode: 'choice' }));
+assert.equal(ch.phase, 'assigning', 'mode au choix : phase d’attribution');
+assert.ok(ch.players.every((p) => p.number === 0), 'numéros non attribués au départ');
+ch = reduce(ch, dart(0)); // manqué → ignoré, on rejoue
+assert.equal(ch.currentPlayer, 0);
+ch = reduce(ch, dart(25)); // bull → ne peut pas être un numéro, ignoré
+assert.equal(ch.players[0].number, 0);
+ch = reduce(ch, dart(7, 3)); // A choisit 7 (multiplicateur indifférent)
+assert.equal(ch.players[0].number, 7);
+assert.equal(ch.currentPlayer, 1, 'au joueur suivant');
+ch = reduce(ch, dart(7)); // B tente 7 déjà pris → ignoré
+assert.equal(ch.players[1].number, 0);
+ch = reduce(ch, dart(12)); // B choisit 12
+ch = reduce(ch, dart(3)); // C choisit 3 → tous attribués
+assert.equal(ch.phase, 'playing', 'partie lancée une fois tous attribués');
+assert.deepEqual(ch.players.map((p) => p.number), [7, 12, 3]);
+assert.equal(ch.currentPlayer, 0);
+
+// prison « au choix » : en prison seulement après l'attribution
+let chp = createGame(cfg({ numberMode: 'choice', entry: 'prison' }));
+assert.ok(chp.players.every((p) => !p.inPrison), 'pas encore en prison pendant l’attribution');
+chp = reduce(chp, dart(5));
+chp = reduce(chp, dart(6));
+chp = reduce(chp, dart(7));
+assert.equal(chp.phase, 'playing');
+assert.ok(chp.players.every((p) => p.inPrison), 'en prison une fois la partie lancée');
 
 // ===== Pas d'attaque avant d'être tueur =====
 let pre = createGame(cfg());

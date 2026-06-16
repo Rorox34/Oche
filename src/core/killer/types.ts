@@ -11,10 +11,19 @@ export type { Dart, Multiplier } from '../darts.ts';
  */
 export type KillerEntry = 'bull' | 'double' | 'prison';
 
+/**
+ * Attribution des numéros :
+ * - `choice` : phase d'attribution au lancement, chaque joueur touche son numéro
+ *              (de la main faible) — c'est le défaut.
+ * - `random` : numéros tirés au sort, partie lancée directement.
+ */
+export type KillerNumberMode = 'choice' | 'random';
+
 export interface KillerConfig {
-  /** Vies au départ. */
+  /** Vies au départ (1–99). */
   lives: number;
   entry: KillerEntry;
+  numberMode: KillerNumberMode;
   /** Éliminer un adversaire restaure toutes ses propres vies. */
   healOnKill: boolean;
   playerNames: string[];
@@ -34,7 +43,7 @@ export interface KillerPlayer {
   kills: number;
 }
 
-export type KillerPhase = 'playing' | 'matchOver';
+export type KillerPhase = 'assigning' | 'playing' | 'matchOver';
 
 /** Évènements d'une volée (structurés : la mise en forme est dans format.ts). */
 export type KillerEvent =

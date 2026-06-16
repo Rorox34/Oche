@@ -21,24 +21,32 @@ function assignNumbers(count: number, rng: () => number): number[] {
   return all.slice(0, count);
 }
 
+/** Met les joueurs en prison si la variante l'exige (début de la phase de jeu). */
+const applyPrisonStart = (players: KillerPlayer[], config: KillerConfig): KillerPlayer[] =>
+  config.entry === 'prison' ? players.map((p) => ({ ...p, inPrison: true })) : players;
+
 export function createGame(config: KillerConfig, rng: () => number = Math.random): KillerState {
-  const numbers = assignNumbers(config.playerNames.length, rng);
+  const random = config.numberMode === 'random';
+  // En mode aléatoire : numéros tirés et partie lancée. Sinon : numéro 0
+  // (non attribué) et phase d'attribution où chaque joueur choisit son numéro.
+  const numbers = random ? assignNumbers(config.playerNames.length, rng) : config.playerNames.map(() => 0);
+  const players: KillerPlayer[] = config.playerNames.map((name, i) => ({
+    name,
+    number: numbers[i],
+    lives: config.lives,
+    maxLives: config.lives,
+    isKiller: false,
+    inPrison: false,
+    dartsThrown: 0,
+    kills: 0,
+  }));
   return {
     config,
-    players: config.playerNames.map((name, i) => ({
-      name,
-      number: numbers[i],
-      lives: config.lives,
-      maxLives: config.lives,
-      isKiller: false,
-      inPrison: config.entry === 'prison',
-      dartsThrown: 0,
-      kills: 0,
-    })),
+    players: random ? applyPrisonStart(players, config) : players,
     currentPlayer: 0,
     currentVisit: [],
     visitEvents: [],
-    phase: 'playing',
+    phase: random ? 'playing' : 'assigning',
     winner: null,
     log: [],
   };
@@ -47,11 +55,35 @@ export function createGame(config: KillerConfig, rng: () => number = Math.random
 export function reduce(state: KillerState, action: KillerAction): KillerState {
   switch (action.type) {
     case 'dart':
-      return applyDart(state, action.dart);
+      return state.phase === 'assigning'
+        ? assignNumber(state, action.dart)
+        : applyDart(state, action.dart);
     case 'restart':
-      // Revanche : même configuration, nouveaux numéros tirés.
+      // Revanche : même configuration (ré-attribution selon le mode).
       return createGame(state.config);
   }
+}
+
+/** Phase d'attribution : le joueur courant touche son numéro (segment 1–20, libre). */
+function assignNumber(state: KillerState, dart: KillerState['currentVisit'][number]): KillerState {
+  if (dart.value < 1 || dart.value > 20) return state; // bull/manqué/invalide ignorés
+  if (state.players.some((p, i) => i !== state.currentPlayer && p.number === dart.value)) {
+    return state; // numéro déjà pris : on rejoue
+  }
+  const players = state.players.map((p) => ({ ...p }));
+  players[state.currentPlayer].number = dart.value;
+
+  const next = state.currentPlayer + 1;
+  if (next < players.length) {
+    return { ...state, players, currentPlayer: next };
+  }
+  // Tous les numéros attribués : la partie commence.
+  return {
+    ...state,
+    players: applyPrisonStart(players, state.config),
+    currentPlayer: 0,
+    phase: 'playing',
+  };
 }
 
 const pushLog = (log: KillerLogEntry[], entry: KillerLogEntry): KillerLogEntry[] =>

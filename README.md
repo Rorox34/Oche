@@ -176,9 +176,13 @@ Quand un joueur tombe à 0 vie il est éliminé ; **dernier survivant gagne**.
 
 | Réglage | Options |
 |---|---|
-| **Vies** | 3, 4, 5, 7 |
+| **Vies** | de 1 à 99 (sélecteur incrémental) |
+| **Numéros** | **Au choix** (chaque joueur touche son numéro au 1er tour, main faible — défaut) · **Aléatoire** |
 | **Entrée** | **Bull** (toucher 25/50) · **Double** (le double de son numéro) · **Prison** |
 | **Soin sur élimination** | éliminer un adversaire restaure toutes vos vies |
+
+En mode **Au choix**, une courte phase d'attribution précède la partie : chacun
+son tour, le joueur touche un numéro libre (1–20) qui devient le sien.
 
 **Règle Prison** : tout le monde commence enfermé ; il faut faire **25 ou 50**
 pour sortir ; un joueur déjà sorti qui refait **25 ou 50** renvoie **tous les

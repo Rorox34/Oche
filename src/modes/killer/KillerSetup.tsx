@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import type { SetupScreenProps } from '../types';
-import type { KillerConfig, KillerEntry } from '../../core/killer/types';
+import type { KillerConfig, KillerEntry, KillerNumberMode } from '../../core/killer/types';
 import { entryDescription } from '../../core/killer/format';
 import { Button } from '../../components/Button';
 import { Segmented } from '../../components/Segmented';
+import { Stepper } from '../../components/Stepper';
 import { FormSection } from '../../components/FormSection';
 import { PlayerNamesField } from '../../components/PlayerNamesField';
 import { SettingsButton } from '../../components/Settings';
@@ -11,6 +12,7 @@ import { SettingsButton } from '../../components/Settings';
 export function KillerSetup({ onStart, onBack }: SetupScreenProps<KillerConfig>) {
   const [lives, setLives] = useState(3);
   const [entry, setEntry] = useState<KillerEntry>('bull');
+  const [numberMode, setNumberMode] = useState<KillerNumberMode>('choice');
   const [healOnKill, setHealOnKill] = useState(false);
   const [names, setNames] = useState<string[]>(['Joueur 1', 'Joueur 2']);
 
@@ -18,6 +20,7 @@ export function KillerSetup({ onStart, onBack }: SetupScreenProps<KillerConfig>)
     onStart({
       lives,
       entry,
+      numberMode,
       healOnKill,
       playerNames: names.map((n, i) => n.trim() || `Joueur ${i + 1}`),
     });
@@ -33,15 +36,27 @@ export function KillerSetup({ onStart, onBack }: SetupScreenProps<KillerConfig>)
       </header>
 
       <FormSection label="Vies">
+        <Stepper label="Vies" value={lives} onChange={setLives} min={1} max={99} suffix="vies" />
+        <p className="text-xs text-muted">
+          Une fois tueur, touchez le numéro d'un adversaire pour lui retirer des vies (simple 1,
+          double 2, triple 3).
+        </p>
+      </FormSection>
+
+      <FormSection label="Numéros">
         <Segmented
-          label="Vies"
-          value={lives}
-          onChange={setLives}
-          options={[3, 4, 5, 7].map((n) => ({ value: n, label: String(n) }))}
+          label="Attribution des numéros"
+          value={numberMode}
+          onChange={setNumberMode}
+          options={[
+            { value: 'choice', label: 'Au choix' },
+            { value: 'random', label: 'Aléatoire' },
+          ]}
         />
         <p className="text-xs text-muted">
-          Un numéro est attribué à chaque joueur. Une fois tueur, touchez le numéro d'un adversaire
-          pour lui retirer des vies (simple 1, double 2, triple 3).
+          {numberMode === 'choice'
+            ? 'Au 1er tour, chaque joueur touche son numéro (lancer de la main faible).'
+            : 'Un numéro distinct est tiré au sort pour chaque joueur.'}
         </p>
       </FormSection>
 
