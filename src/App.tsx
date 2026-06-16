@@ -2,9 +2,11 @@ import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';
 import { getTheme } from './themes';
 import { HomeScreen } from './screens/HomeScreen';
+import { ModeSelectScreen } from './screens/ModeSelectScreen';
 import { SetupScreen } from './screens/SetupScreen';
 import { GameScreen } from './screens/GameScreen';
 import { StatsScreen } from './screens/StatsScreen';
+import { CreditsScreen } from './screens/CreditsScreen';
 import { SettingsOverlay } from './components/Settings';
 
 export default function App() {
@@ -20,12 +22,16 @@ export default function App() {
 
   return (
     <>
-      {screen === 'setup' ? (
+      {screen === 'modes' ? (
+        <ModeSelectScreen />
+      ) : screen === 'setup' ? (
         <SetupScreen />
       ) : screen === 'game' ? (
         <GameScreen />
       ) : screen === 'stats' ? (
         <StatsScreen />
+      ) : screen === 'credits' ? (
+        <CreditsScreen />
       ) : (
         <HomeScreen />
       )}

@@ -5,14 +5,14 @@ import { getMode } from '../modes/registry';
 export function SetupScreen() {
   const modeId = useAppStore((s) => s.setupModeId);
   const startGame = useAppStore((s) => s.startGame);
-  const goHome = useAppStore((s) => s.goHome);
+  const openModes = useAppStore((s) => s.openModes);
 
   useEffect(() => {
-    if (!modeId) goHome();
-  }, [modeId, goHome]);
+    if (!modeId) openModes();
+  }, [modeId, openModes]);
 
   if (!modeId) return null;
 
   const Setup = getMode(modeId).SetupScreen;
-  return <Setup onStart={(config) => startGame(modeId, config)} onBack={goHome} />;
+  return <Setup onStart={(config) => startGame(modeId, config)} onBack={openModes} />;
 }

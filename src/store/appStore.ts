@@ -5,7 +5,7 @@ import { DEFAULT_THEME, type ThemeId } from '../themes';
 import type { GameResult } from '../modes/types';
 import { recordResult, reverseResult, type Profiles } from './profiles';
 
-export type Screen = 'home' | 'setup' | 'game' | 'stats';
+export type Screen = 'home' | 'modes' | 'setup' | 'game' | 'stats' | 'credits';
 
 interface ActiveGame {
   modeId: string;
@@ -35,7 +35,9 @@ interface AppState {
   openSettings: () => void;
   closeSettings: () => void;
   goHome: () => void;
+  openModes: () => void;
   openStats: () => void;
+  openCredits: () => void;
   openSetup: (modeId: string) => void;
   startGame: (modeId: string, config: unknown) => void;
   resumeGame: () => void;
@@ -64,7 +66,9 @@ export const useAppStore = create<AppState>()(
       closeSettings: () => set({ settingsOpen: false }),
 
       goHome: () => set({ screen: 'home' }),
+      openModes: () => set({ screen: 'modes' }),
       openStats: () => set({ screen: 'stats' }),
+      openCredits: () => set({ screen: 'credits' }),
 
       openSetup: (modeId) => set({ screen: 'setup', setupModeId: modeId }),
 

@@ -91,13 +91,21 @@ src/
 │   ├── golf/          # Écrans Golf (Setup, Game, Scorecard)
 │   └── killer/        # Écrans Killer (Setup, Game, PlayerCard)
 ├── components/        # Partagé : DartKeypad, DartBadge, HistoryDrawer,
-│                      #   VictoryOverlay, PlayerNamesField, Stepper, Button…
+│                      #   VictoryOverlay, PlayerNamesField, Stepper, ThemeSlider…
 ├── store/
 │   ├── appStore.ts    # Zustand persist : navigation, partie, undo, réglages, profils
 │   └── profiles.ts    # Logique pure des statistiques (enregistrement réversible)
 ├── themes/index.ts    # Thèmes (Dark Classic, Light Pro, Tournament)
-└── screens/           # Shell générique : Home, Setup, Game, Stats
+└── screens/           # Shell : Home (menu), ModeSelect, Setup, Game, Stats, Credits
 ```
+
+## Accueil
+
+L'accueil est un menu : **Nouvelle partie** (→ choix du mode), **Options**
+(overlay réglages), **Statistiques** et **Crédits**, plus un **sélecteur de thème
+à 3 positions** en bas (changement de couleur immédiat). Une bannière
+« Reprendre » apparaît si une partie est en cours. Navigation : Accueil → Modes
+→ Configuration → Jeu.
 
 ## Around the Clock
 
