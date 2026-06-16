@@ -10,6 +10,10 @@ export const atcMode: GameModeDefinition<AtcConfig, AtcState, AtcAction> = {
   description: '1 → 20 puis Bull · simples, doubles, triples, ordre plateau',
   createGame: (config) => createGame(config),
   reduce,
+  getResult: (state) =>
+    state.phase === 'matchOver' && state.winner !== null
+      ? { players: state.players.map((p) => p.name), winner: state.winner }
+      : null,
   SetupScreen: AtcSetup,
   GameScreen: AtcGame,
 };

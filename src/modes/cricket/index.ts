@@ -10,6 +10,10 @@ export const cricketMode: GameModeDefinition<CricketConfig, CricketState, Cricke
   description: 'Ferme 20 → 15 + Bull · Standard, Cut-Throat ou Sans points',
   createGame: (config) => createGame(config),
   reduce,
+  getResult: (state) =>
+    state.phase === 'matchOver' && state.winner !== null
+      ? { players: state.players.map((p) => p.name), winner: state.winner }
+      : null,
   SetupScreen: CricketSetup,
   GameScreen: CricketGame,
 };

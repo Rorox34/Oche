@@ -4,6 +4,7 @@ import { getTheme } from './themes';
 import { HomeScreen } from './screens/HomeScreen';
 import { SetupScreen } from './screens/SetupScreen';
 import { GameScreen } from './screens/GameScreen';
+import { StatsScreen } from './screens/StatsScreen';
 import { SettingsOverlay } from './components/Settings';
 
 export default function App() {
@@ -19,7 +20,15 @@ export default function App() {
 
   return (
     <>
-      {screen === 'setup' ? <SetupScreen /> : screen === 'game' ? <GameScreen /> : <HomeScreen />}
+      {screen === 'setup' ? (
+        <SetupScreen />
+      ) : screen === 'game' ? (
+        <GameScreen />
+      ) : screen === 'stats' ? (
+        <StatsScreen />
+      ) : (
+        <HomeScreen />
+      )}
       <SettingsOverlay />
     </>
   );

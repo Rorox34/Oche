@@ -7,9 +7,10 @@ plateau, bull final, multi-touches, chrono), **Cricket** (Standard, Cut-Throat,
 Sans points), **Shanghai** (manches 1→7/10/20, ordre croissant ou aléatoire,
 victoire Shanghai S+D+T), **Golf** (9 ou 18 trous, scoring Standard ou Au plus
 court) et **Killer** (vies configurables, entrée Bull/Double/Prison, soin sur
-élimination). Options accessibles partout via l'engrenage en en-tête. Thèmes,
-historique coulissant, statistiques en direct, écran de victoire, undo illimité,
-partie persistée hors-ligne.
+élimination). Options accessibles partout via l'engrenage en en-tête.
+**Statistiques par joueur** (profils mémorisés, suggestions de noms, écran dédié).
+Thèmes, historique coulissant, statistiques en direct, écran de victoire, undo
+illimité, partie persistée hors-ligne.
 
 ## Démarrage
 
@@ -90,10 +91,12 @@ src/
 │   ├── golf/          # Écrans Golf (Setup, Game, Scorecard)
 │   └── killer/        # Écrans Killer (Setup, Game, PlayerCard)
 ├── components/        # Partagé : DartKeypad, DartBadge, HistoryDrawer,
-│                      #   VictoryOverlay, PlayerNamesField, Button, Segmented…
-├── store/appStore.ts  # Zustand persist : navigation, partie, undo, réglages
+│                      #   VictoryOverlay, PlayerNamesField, Stepper, Button…
+├── store/
+│   ├── appStore.ts    # Zustand persist : navigation, partie, undo, réglages, profils
+│   └── profiles.ts    # Logique pure des statistiques (enregistrement réversible)
 ├── themes/index.ts    # Thèmes (Dark Classic, Light Pro, Tournament)
-└── screens/           # Shell générique : Home, Setup, Game
+└── screens/           # Shell générique : Home, Setup, Game, Stats
 ```
 
 ## Around the Clock
@@ -200,8 +203,25 @@ Les modes Cricket, Shanghai, Golf et Killer ci-dessus illustrent concrètement c
 
 1. Créer `src/modes/<mode>/` avec un état, un réducteur pur et deux écrans.
 2. Exporter un `GameModeDefinition` (`createGame`, `reduce`, `SetupScreen`, `GameScreen`).
-3. L'ajouter à la liste de `src/modes/registry.ts`. Rien d'autre à toucher :
-   navigation, persistance, undo et reprise de partie sont fournis par le shell.
+3. L'ajouter à la liste de `src/modes/registry.ts`. En implémentant `getResult`
+   (résultat de fin de partie), le mode alimente automatiquement les statistiques.
+   Rien d'autre à toucher : navigation, persistance, undo et reprise sont fournis
+   par le shell.
+
+## Statistiques par joueur
+
+Les noms saisis (hors « Joueur N » par défaut) sont mémorisés en local. À la
+**saisie des joueurs**, les noms connus sont **suggérés, triés par nombre de
+parties** ; à la **fin de chaque partie**, le résultat est enregistré dans le
+profil de chaque joueur (parties, victoires, taux, détail par mode). Un écran
+**Statistiques** (icône sur l'accueil) liste les profils ; on peut en supprimer
+un ou tout effacer.
+
+Le shell enregistre le résultat à la transition vers une partie terminée (via
+`mode.getResult`) et l'**annule si l'on revient sur le coup gagnant** (undo) —
+une revanche conserve les stats. Toute la logique est isolée et testée dans
+[`store/profiles.ts`](src/store/profiles.ts) (`recordResult` / `reverseResult`
+réversibles, `suggestNames`).
 
 ## Préparation du futur
 
@@ -210,9 +230,9 @@ Les modes Cricket, Shanghai, Golf et Killer ci-dessus illustrent concrètement c
 - **High Score / Gotcha / Halve It** : nouveaux dossiers sous `modes/` via le
   contrat `GameModeDefinition` — les six modes existants servent de modèles
   (cibles/manches/trous générés, variantes centralisées, état par joueur).
-- **Profils locaux / statistiques globales** : le moteur produit déjà un
-  journal (`state.log`) et des statistiques par joueur — un futur slice
-  `profiles` du store peut les agréger à la fin de chaque partie.
+- **Statistiques avancées par mode** : les profils agrègent déjà parties et
+  victoires par mode — on peut y stocker moyennes (X01), MPR (Cricket), score
+  golf… en enrichissant le `GameResult` retourné par `getResult`.
 - **Comptes / classements / cloud / en ligne** : le cœur étant pur et
   sérialisable (state + actions), il peut être rejoué côté serveur tel quel.
 

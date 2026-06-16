@@ -10,6 +10,10 @@ export const killerMode: GameModeDefinition<KillerConfig, KillerState, KillerAct
   description: 'Numéro perso + vies · entrée Bull/Double/Prison · dernier survivant',
   createGame: (config) => createGame(config),
   reduce,
+  getResult: (state) =>
+    state.phase === 'matchOver' && state.winner !== null
+      ? { players: state.players.map((p) => p.name), winner: state.winner }
+      : null,
   SetupScreen: KillerSetup,
   GameScreen: KillerGame,
 };

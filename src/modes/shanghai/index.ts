@@ -10,6 +10,10 @@ export const shanghaiMode: GameModeDefinition<ShanghaiConfig, ShanghaiState, Sha
   description: 'Une manche par numéro · S+D+T = victoire immédiate',
   createGame: (config) => createGame(config),
   reduce,
+  getResult: (state) =>
+    state.phase === 'matchOver' && state.winner !== null
+      ? { players: state.players.map((p) => p.name), winner: state.winner }
+      : null,
   SetupScreen: ShanghaiSetup,
   GameScreen: ShanghaiGame,
 };

@@ -10,6 +10,10 @@ export const x01Mode: GameModeDefinition<X01Config, X01State, X01Action> = {
   description: 'Le classique. Descendez à zéro, finissez sur un double.',
   createGame,
   reduce,
+  getResult: (state) =>
+    state.phase === 'matchOver' && state.winner !== null
+      ? { players: state.players.map((p) => p.name), winner: state.winner }
+      : null,
   SetupScreen: X01Setup,
   GameScreen: X01Game,
 };
