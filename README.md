@@ -1,12 +1,13 @@
 # Oche — Compteur de fléchettes (PWA)
 
-Compteur de fléchettes mobile-first. Cinq modes : **301 / 501** (règles
+Compteur de fléchettes mobile-first. Six modes : **301 / 501** (règles
 d'entrée/sortie complètes, suggestions de finish, clavier intelligent),
 **Around the Clock** (variantes de segments, ordres dont l'ordre réel du
 plateau, bull final, multi-touches, chrono), **Cricket** (Standard, Cut-Throat,
 Sans points), **Shanghai** (manches 1→7/10/20, ordre croissant ou aléatoire,
-victoire Shanghai S+D+T) et **Golf** (9 ou 18 trous, scoring Standard ou Au plus
-court). Options accessibles partout via l'engrenage en en-tête. Thèmes,
+victoire Shanghai S+D+T), **Golf** (9 ou 18 trous, scoring Standard ou Au plus
+court) et **Killer** (vies configurables, entrée Bull/Double/Prison, soin sur
+élimination). Options accessibles partout via l'engrenage en en-tête. Thèmes,
 historique coulissant, statistiques en direct, écran de victoire, undo illimité,
 partie persistée hors-ligne.
 
@@ -27,6 +28,7 @@ node --experimental-strip-types tests/atc.test.mjs      # moteur Around the Cloc
 node --experimental-strip-types tests/cricket.test.mjs  # moteur Cricket
 node --experimental-strip-types tests/shanghai.test.mjs # moteur Shanghai
 node --experimental-strip-types tests/golf.test.mjs     # moteur Golf
+node --experimental-strip-types tests/killer.test.mjs   # moteur Killer
 ```
 
 ## Règles supportées
@@ -69,11 +71,15 @@ src/
 │   │   ├── rules.ts   #   score, détection du Shanghai (S+D+T)
 │   │   ├── engine.ts  #   réducteur : manches, rotation, victoire Shanghai
 │   │   └── format.ts  #   libellés des plages et de l'ordre
-│   └── golf/          # Moteur Golf (pur, indépendant) :
-│       ├── targets.ts #   numéros des trous (1→N)
-│       ├── rules.ts   #   VARIANTS : score d'un trou, par, provisoire
-│       ├── engine.ts  #   réducteur : trous, rotation, score relatif au par
-│       └── format.ts  #   libellés des variantes et score relatif
+│   ├── golf/          # Moteur Golf (pur, indépendant) :
+│   │   ├── targets.ts #   numéros des trous (1→N)
+│   │   ├── rules.ts   #   VARIANTS : score d'un trou, par, provisoire
+│   │   ├── engine.ts  #   réducteur : trous, rotation, score relatif au par
+│   │   └── format.ts  #   libellés des variantes et score relatif
+│   └── killer/        # Moteur Killer (pur, indépendant) :
+│       ├── rules.ts   #   statuts, recommandations (numéros adverses)
+│       ├── engine.ts  #   réducteur : entrée, attaque, prison, élimination
+│       └── format.ts  #   libellés d'entrée, statuts, évènements de volée
 ├── modes/
 │   ├── types.ts       # Contrat GameModeDefinition (createGame, reduce, écrans)
 │   ├── registry.ts    # Registre — ajouter un mode = 1 dossier + 1 ligne
@@ -81,7 +87,8 @@ src/
 │   ├── atc/           # Écrans du mode Around the Clock
 │   ├── cricket/       # Écrans Cricket (Setup, Game, Board)
 │   ├── shanghai/      # Écrans Shanghai (Setup, Game, PlayerCard)
-│   └── golf/          # Écrans Golf (Setup, Game, Scorecard)
+│   ├── golf/          # Écrans Golf (Setup, Game, Scorecard)
+│   └── killer/        # Écrans Killer (Setup, Game, PlayerCard)
 ├── components/        # Partagé : DartKeypad, DartBadge, HistoryDrawer,
 │                      #   VictoryOverlay, PlayerNamesField, Button, Segmented…
 ├── store/appStore.ts  # Zustand persist : navigation, partie, undo, réglages
@@ -160,9 +167,32 @@ Les deux méthodes de score vivent dans l'objet `VARIANTS` de
 une entrée. La carte de parcours code les coups en couleur (eagle / birdie / par
 / bogey).
 
+## Killer
+
+Jeu d'élimination. Chaque joueur reçoit un **numéro** (tiré au lancement) et des
+**vies**. Il faut d'abord **entrer** (devenir « tueur »), puis on retire des vies
+aux adversaires en touchant **leur** numéro — simple 1, double 2, triple 3 vies.
+Quand un joueur tombe à 0 vie il est éliminé ; **dernier survivant gagne**.
+
+| Réglage | Options |
+|---|---|
+| **Vies** | 3, 4, 5, 7 |
+| **Entrée** | **Bull** (toucher 25/50) · **Double** (le double de son numéro) · **Prison** |
+| **Soin sur élimination** | éliminer un adversaire restaure toutes vos vies |
+
+**Règle Prison** : tout le monde commence enfermé ; il faut faire **25 ou 50**
+pour sortir ; un joueur déjà sorti qui refait **25 ou 50** renvoie **tous les
+autres en prison** (ils doivent ré-évader). Un tueur enfermé ne peut plus
+attaquer tant qu'il n'est pas ressorti.
+
+La logique (entrée, attaque, prison, soin, victoire) est dans le réducteur pur
+[`engine.ts`](src/core/killer/engine.ts) ; les évènements de volée (entrée,
+sortie, retrait de vies, élimination…) sont structurés et mis en forme dans
+[`format.ts`](src/core/killer/format.ts).
+
 ## Ajouter un mode de jeu
 
-Les modes Cricket, Shanghai et Golf ci-dessus illustrent concrètement cette recette :
+Les modes Cricket, Shanghai, Golf et Killer ci-dessus illustrent concrètement cette recette :
 
 1. Créer `src/modes/<mode>/` avec un état, un réducteur pur et deux écrans.
 2. Exporter un `GameModeDefinition` (`createGame`, `reduce`, `SetupScreen`, `GameScreen`).
@@ -173,9 +203,9 @@ Les modes Cricket, Shanghai et Golf ci-dessus illustrent concrètement cette rec
 
 - **Sets** : `legsToWin` existe déjà ; les sets sont un niveau au-dessus
   (compteur `setsWon` + condition de fin dans `engine.ts`), sans impact UI majeur.
-- **Killer / High Score / Gotcha** : nouveaux dossiers sous `modes/` via le
-  contrat `GameModeDefinition` — Around the Clock, Cricket, Shanghai et Golf
-  servent de modèles (cibles/manches/trous générés, variantes centralisées).
+- **High Score / Gotcha / Halve It** : nouveaux dossiers sous `modes/` via le
+  contrat `GameModeDefinition` — les six modes existants servent de modèles
+  (cibles/manches/trous générés, variantes centralisées, état par joueur).
 - **Profils locaux / statistiques globales** : le moteur produit déjà un
   journal (`state.log`) et des statistiques par joueur — un futur slice
   `profiles` du store peut les agréger à la fin de chaque partie.
