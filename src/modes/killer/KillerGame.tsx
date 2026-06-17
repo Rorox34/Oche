@@ -6,7 +6,7 @@ import { visitLivesTaken } from '../../core/killer/engine';
 import { formatEvent, formatVariant, formatVariantShort } from '../../core/killer/format';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../../components/Button';
-import { DartKeypad } from '../../components/DartKeypad';
+import { KillerKeypad } from '../../components/KillerKeypad';
 import { DartBadge } from '../../components/DartBadge';
 import { HistoryDrawer, HistoryButton, type HistoryViewEntry } from '../../components/HistoryDrawer';
 import { SettingsButton } from '../../components/Settings';
@@ -34,6 +34,16 @@ export function KillerGame({
   const livesTaken = visitLivesTaken(state);
   const assigning = phase === 'assigning';
   const takenNumbers = players.filter((p) => p.number > 0).map((p) => p.number);
+
+  // Clavier : pendant l'attribution, tout 1→20 (numéros pris grisés) ; en jeu,
+  // seulement les numéros des joueurs encore en vie + Bull si utile au tour.
+  const aliveNumbers = [...new Set(players.filter((p) => p.lives > 0).map((p) => p.number))].sort(
+    (a, b) => a - b,
+  );
+  const showBull =
+    me.inPrison ||
+    (!me.isKiller && config.entry === 'bull') ||
+    (me.isKiller && config.entry === 'prison');
 
   const instruction = (() => {
     if (me.inPrison) return `🔒 ${me.name} est en prison — touchez le Bull (25/50) pour sortir`;
@@ -138,12 +148,28 @@ export function KillerGame({
       )}
 
       <div>
-        <DartKeypad
-          onDart={(dart) => dispatch({ type: 'dart', dart })}
-          undo={undo}
-          canUndo={canUndo}
-          recommended={recommended}
-        />
+        {assigning ? (
+          <KillerKeypad
+            onDart={(dart) => dispatch({ type: 'dart', dart })}
+            undo={undo}
+            canUndo={canUndo}
+            numbers={Array.from({ length: 20 }, (_, i) => i + 1)}
+            disabledNumbers={takenNumbers}
+            showMultipliers={false}
+            showMiss={false}
+            showBull={false}
+          />
+        ) : (
+          <KillerKeypad
+            onDart={(dart) => dispatch({ type: 'dart', dart })}
+            undo={undo}
+            canUndo={canUndo}
+            numbers={aliveNumbers}
+            showMultipliers
+            showBull={showBull}
+            recommended={recommended}
+          />
+        )}
       </div>
 
       <HistoryDrawer
