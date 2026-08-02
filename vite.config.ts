@@ -3,10 +3,12 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   // host: true expose le serveur de dev sur le réseau local et en cloud
   // (Codespaces, accès iPhone via Wi-Fi ou port forwardé).
   server: { host: true },
+  // Sert l'app depuis /Oche/ sur GitHub Pages (nom du dépôt).
+  base: mode === 'production' ? '/Oche/' : '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -30,4 +32,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));
