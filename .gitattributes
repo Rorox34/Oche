@@ -1,0 +1,8 @@
+# Fins de ligne normalisées en LF dans le dépôt (multi-plateforme : Windows, iOS, Linux/cloud).
+* text=auto eol=lf
+
+# Fichiers binaires (jamais convertis).
+*.png binary
+*.woff binary
+*.woff2 binary
+*.ico binary

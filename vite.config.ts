@@ -4,6 +4,9 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  // host: true expose le serveur de dev sur le réseau local et en cloud
+  // (Codespaces, accès iPhone via Wi-Fi ou port forwardé).
+  server: { host: true },
   plugins: [
     react(),
     tailwindcss(),
