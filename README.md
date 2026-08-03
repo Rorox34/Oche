@@ -1,15 +1,14 @@
 # Oche — Compteur de fléchettes (PWA)
 
-Compteur de fléchettes mobile-first. Sept modes : **301 / 501** (règles
+Compteur de fléchettes mobile-first. Six modes : **301 / 501** (règles
 d'entrée/sortie complètes, suggestions de finish, clavier intelligent),
 **Around the Clock** (variantes de segments, ordres dont l'ordre réel du
 plateau, bull final, multi-touches, chrono), **Cricket** (Standard, Cut-Throat,
 Sans points), **Shanghai** (manches 1→7/10/20, ordre croissant ou aléatoire,
-victoire Shanghai S+D+T), **Golf** (9 ou 18 trous, scoring Standard ou Au plus
-court), **Golf Cricket** (fermez chaque trou en 3 marques, tout le monde
-attend avant le trou suivant, score = fléchettes lancées) et **Killer** (vies
-configurables, entrée Bull/Double/Prison, soin sur élimination). Options
-accessibles partout via l'engrenage en en-tête.
+victoire Shanghai S+D+T), **Golf** (9 ou 18 trous, scoring Standard, Au plus
+court ou Cricket — fermez chaque trou en 3 marques, tout le monde attend avant
+le trou suivant) et **Killer** (vies configurables, entrée Bull/Double/Prison,
+soin sur élimination). Options accessibles partout via l'engrenage en en-tête.
 **Statistiques par joueur** (profils mémorisés, suggestions de noms, écran dédié).
 Thèmes, historique coulissant, statistiques en direct, écran de victoire, undo
 illimité, partie persistée hors-ligne.
@@ -30,8 +29,7 @@ node --experimental-strip-types tests/engine.test.mjs   # moteur 301/501
 node --experimental-strip-types tests/atc.test.mjs      # moteur Around the Clock
 node --experimental-strip-types tests/cricket.test.mjs  # moteur Cricket
 node --experimental-strip-types tests/shanghai.test.mjs # moteur Shanghai
-node --experimental-strip-types tests/golf.test.mjs     # moteur Golf
-node --experimental-strip-types tests/golfCricket.test.mjs # moteur Golf Cricket
+node --experimental-strip-types tests/golf.test.mjs     # moteur Golf (Standard, Au plus court, Cricket)
 node --experimental-strip-types tests/killer.test.mjs   # moteur Killer
 ```
 
@@ -77,14 +75,11 @@ src/
 │   │   └── format.ts  #   libellés des plages et de l'ordre
 │   ├── golf/          # Moteur Golf (pur, indépendant) :
 │   │   ├── targets.ts #   numéros des trous (1→N)
-│   │   ├── rules.ts   #   VARIANTS : score d'un trou, par, provisoire
-│   │   ├── engine.ts  #   réducteur : trous, rotation, score relatif au par
+│   │   ├── rules.ts   #   VARIANTS : score d'un trou (Standard/Au plus court),
+│   │   │              #   marksFor (variante Cricket), par, provisoire
+│   │   ├── engine.ts  #   réducteur : trous, rotation, score relatif au par ;
+│   │   │              #   volée variable + attente des joueurs pour Cricket
 │   │   └── format.ts  #   libellés des variantes et score relatif
-│   ├── golfCricket/   # Moteur Golf Cricket (pur, indépendant) :
-│   │   ├── targets.ts #   numéros des trous (1→N)
-│   │   ├── rules.ts   #   marksFor (marques par fléchette), fléchettes recommandées
-│   │   ├── engine.ts  #   réducteur : marques, fermeture, attente des joueurs, rotation
-│   │   └── format.ts  #   libellés et score relatif au par
 │   └── killer/        # Moteur Killer (pur, indépendant) :
 │       ├── rules.ts   #   statuts, recommandations (numéros adverses)
 │       ├── engine.ts  #   réducteur : entrée, attaque, prison, élimination
@@ -97,7 +92,6 @@ src/
 │   ├── cricket/       # Écrans Cricket (Setup, Game, Board)
 │   ├── shanghai/      # Écrans Shanghai (Setup, Game, PlayerCard)
 │   ├── golf/          # Écrans Golf (Setup, Game, Scorecard)
-│   ├── golfCricket/   # Écrans Golf Cricket (Setup, Game, Scorecard)
 │   └── killer/        # Écrans Killer (Setup, Game, PlayerCard)
 ├── components/        # Partagé : DartKeypad, DartBadge, HistoryDrawer,
 │                      #   VictoryOverlay, PlayerNamesField, Stepper, ThemeSlider…
@@ -174,40 +168,34 @@ chaque revanche. La détection du Shanghai et le score sont isolés dans
 ## Golf
 
 Comme au golf : **9 ou 18 trous**, le trou *n* correspond au **numéro *n*** sur
-la cible (3 fléchettes par trou). On marque des **coups** et le **score le plus
-bas gagne**. Le classement se juge au score relatif au par (par 3 par trou).
+la cible. On marque des **coups** et le **score le plus bas gagne**. Le
+classement se juge au score relatif au par (par 3 par trou).
 
 | Réglage | Options |
 |---|---|
 | **Trous** | 9 (1 → 9), 18 (1 → 18) |
-| **Score** | **Standard** (meilleure fléchette : triple = 1, double = 2, simple = 3, manqué = 4) · **Au plus court** (nombre de fléchettes pour toucher, manqué = 4) |
+| **Score** | **Standard** (meilleure fléchette sur 3 : triple = 1, double = 2, simple = 3, manqué = 4) · **Au plus court** (nombre de fléchettes pour toucher, manqué = 4) · **Cricket** (fermez le trou en 3 marques, tout le monde attend avant le trou suivant) |
 
-Les deux méthodes de score vivent dans l'objet `VARIANTS` de
-[`rules.ts`](src/core/golf/rules.ts) (`holeScore`) — ajouter un mode de score =
-une entrée. La carte de parcours code les coups en couleur (eagle / birdie / par
-/ bogey).
+**Standard** et **Au plus court** jouent une volée fixe de 3 fléchettes,
+scorée une fois complète (VARIANTS dans [`rules.ts`](src/core/golf/rules.ts),
+fonction `holeScore`) — ajouter une méthode de score = une entrée dans cet
+objet.
 
-## Golf Cricket
+**Cricket** se joue différemment : le trou se ferme façon Cricket en
+accumulant **3 marques** (simple = 1, double = 2, triple = 3 — un triple ferme
+donc le trou d'un coup). **Chaque fléchette lancée, touchée ou manquée, compte
+un coup** : le score à minimiser est le nombre total de fléchettes utilisées
+pour fermer. Une fois un trou fermé, un joueur **attend que tous les autres
+l'aient fermé** avant que la partie passe au trou suivant — contrairement au
+Cricket classique où chacun progresse indépendamment. Le réducteur
+([`engine.ts`](src/core/golf/engine.ts)) bascule sur une logique dédiée pour
+cette variante : volée de longueur variable (elle s'arrête dès la fermeture,
+pas besoin d'épuiser les 3 fléchettes), et rotation qui saute les joueurs déjà
+fermés (`nextUnclosedPlayer`).
 
-Un croisement Golf / Cricket : le trou *n* correspond au **numéro *n***, mais on
-le ferme façon Cricket en accumulant **3 marques** (simple = 1, double = 2,
-triple = 3 — un triple ferme donc le trou d'un coup). **Chaque fléchette lancée,
-touchée ou manquée, compte un coup** : le score à minimiser est le nombre total
-de fléchettes utilisées pour fermer. Une fois un trou fermé, un joueur **attend
-que tous les autres l'aient fermé** avant que la partie passe au trou suivant —
-contrairement au Cricket classique où chacun progresse indépendamment.
-
-| Réglage | Options |
-|---|---|
-| **Trous** | 9 (1 → 9), 18 (1 → 18) |
-
-Le réducteur ([`engine.ts`](src/core/golfCricket/engine.ts)) suit, pour chaque
-joueur, ses marques et ses fléchettes sur le trou courant ; une volée s'arrête
-dès la fermeture (pas besoin d'épuiser les 3 fléchettes) ou après 3 fléchettes
-sinon, et la main passe au prochain joueur qui n'a pas encore fermé
-(`nextUnclosedPlayer`). Le trou n'avance que lorsque tous ont fermé. La carte de
-parcours réutilise le code couleur golf (eagle / birdie / par / bogey) et
-affiche la progression des marques (`x/3`) sur le trou en cours.
+La carte de parcours code les coups en couleur (eagle / birdie / par / bogey)
+dans les trois variantes, et affiche en plus la progression des marques
+(`x/3`) sur le trou en cours en variante Cricket.
 
 ## Killer
 
@@ -238,7 +226,7 @@ sortie, retrait de vies, élimination…) sont structurés et mis en forme dans
 
 ## Ajouter un mode de jeu
 
-Les modes Cricket, Shanghai, Golf, Golf Cricket et Killer ci-dessus illustrent concrètement cette recette :
+Les modes Cricket, Shanghai, Golf et Killer ci-dessus illustrent concrètement cette recette :
 
 1. Créer `src/modes/<mode>/` avec un état, un réducteur pur et deux écrans.
 2. Exporter un `GameModeDefinition` (`createGame`, `reduce`, `SetupScreen`, `GameScreen`).
@@ -267,7 +255,7 @@ réversibles, `suggestNames`).
 - **Sets** : `legsToWin` existe déjà ; les sets sont un niveau au-dessus
   (compteur `setsWon` + condition de fin dans `engine.ts`), sans impact UI majeur.
 - **High Score / Gotcha / Halve It** : nouveaux dossiers sous `modes/` via le
-  contrat `GameModeDefinition` — les sept modes existants servent de modèles
+  contrat `GameModeDefinition` — les six modes existants servent de modèles
   (cibles/manches/trous générés, variantes centralisées, état par joueur).
 - **Statistiques avancées par mode** : les profils agrègent déjà parties et
   victoires par mode — on peut y stocker moyennes (X01), MPR (Cricket), score

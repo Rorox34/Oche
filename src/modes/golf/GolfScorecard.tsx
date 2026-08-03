@@ -9,11 +9,26 @@ interface Props {
   currentPlayer: number;
   /** Index du trou courant (ligne mise en valeur). */
   round: number;
+  /** Variante Cricket : affiche la progression des marques (x/3) sur le trou en cours. */
+  showMarks?: boolean;
 }
 
 /** Couleur d'un coup : 1 eagle (or), 2 birdie (vert), 3 par (crème), ≥4 bogey (rouge). */
-function StrokeCell({ score, active }: { score: number; active: boolean }) {
+function StrokeCell({
+  score,
+  active,
+  marks,
+  showMarks,
+}: {
+  score: number;
+  active: boolean;
+  marks: number;
+  showMarks: boolean;
+}) {
   if (score < 0) {
+    if (showMarks && marks > 0) {
+      return <span className="mx-auto text-sm font-semibold tabular-nums text-accent">{marks}/3</span>;
+    }
     return <span className="mx-auto text-muted/25">·</span>;
   }
   const tone =
@@ -28,7 +43,7 @@ function StrokeCell({ score, active }: { score: number; active: boolean }) {
 }
 
 /** Carte de parcours : une ligne par trou, une colonne par joueur. */
-export function GolfScorecard({ targets, players, currentPlayer, round }: Props) {
+export function GolfScorecard({ targets, players, currentPlayer, round, showMarks = false }: Props) {
   const cols = `2.5rem repeat(${players.length}, minmax(0, 1fr))`;
 
   // Meneur jugé au score relatif au par (équitable même si les joueurs n'ont
@@ -83,7 +98,12 @@ export function GolfScorecard({ targets, players, currentPlayer, round }: Props)
                   className={`flex items-center border-t border-line/40 py-1.5
                     ${onHole ? 'bg-surface/40' : ''}`}
                 >
-                  <StrokeCell score={p.holeScores[i]} active={pi === currentPlayer} />
+                  <StrokeCell
+                    score={p.holeScores[i]}
+                    active={pi === currentPlayer}
+                    marks={p.holeMarks}
+                    showMarks={showMarks && onHole}
+                  />
                 </span>
               ))}
             </Fragment>

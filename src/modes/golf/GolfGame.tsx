@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { GameScreenProps } from '../types';
 import type { GolfAction, GolfState } from '../../core/golf/types';
 import { playedHoles, relativeToPar } from '../../core/golf/engine';
-import { PAR_PER_HOLE, previewHoleScore, recommendedDarts } from '../../core/golf/rules';
+import { MARKS_TO_CLOSE, PAR_PER_HOLE, previewHoleScore, recommendedDarts } from '../../core/golf/rules';
 import { formatRelativePar, formatVariant, formatVariantShort } from '../../core/golf/format';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../../components/Button';
@@ -23,6 +23,8 @@ export function GolfGame({
 }: GameScreenProps<GolfState, GolfAction>) {
   const { players, currentPlayer, currentVisit, targets, config, round, phase, winner } = state;
   const target = targets[round];
+  const player = players[currentPlayer];
+  const isCricket = config.variant === 'cricket';
   const smartKeypad = useAppStore((s) => s.settings.smartKeypad);
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -31,22 +33,32 @@ export function GolfGame({
     [smartKeypad, phase, target],
   );
 
-  const preview = previewHoleScore(currentVisit, target, config.variant);
-  const chipTone =
-    preview === null
+  // Cricket : la progression (marques /3) se lit en direct sur le joueur courant.
+  // Standard / Au plus court : le coup provisoire se déduit de la volée en cours.
+  const marks = player.holeMarks;
+  const preview = isCricket ? null : previewHoleScore(currentVisit, target, config.variant);
+  const chipTone = isCricket
+    ? marks === 0
+      ? 'bg-cream text-board'
+      : marks < MARKS_TO_CLOSE
+        ? 'bg-green text-board'
+        : 'bg-gold text-board'
+    : preview === null
       ? 'bg-cream text-board'
       : preview === 1
         ? 'bg-gold text-board'
         : preview === 2
           ? 'bg-green text-board'
           : 'bg-cream text-board';
+  const chipLabel = isCricket ? `${marks}/${MARKS_TO_CLOSE}` : (preview ?? '—');
+  const chipAria = isCricket ? `Marques : ${marks} sur ${MARKS_TO_CLOSE}` : preview === null ? 'Trou en cours' : `Coup provisoire : ${preview}`;
 
   const historyEntries: HistoryViewEntry[] = state.log.map((entry) => ({
     playerName: players[entry.player]?.name ?? `Joueur ${entry.player + 1}`,
     meta: `Trou ${entry.hole}`,
     darts: entry.darts,
     badge: entry.strokes === 1 ? { label: 'Eagle', tone: 'green' as const } : undefined,
-    value: entry.strokes === 1 ? undefined : `${entry.strokes}`,
+    value: entry.strokes === null || entry.strokes === 1 ? undefined : `${entry.strokes}`,
     gold: entry.strokes === 1,
   }));
 
@@ -69,7 +81,13 @@ export function GolfGame({
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <GolfScorecard targets={targets} players={players} currentPlayer={currentPlayer} round={round} />
+        <GolfScorecard
+          targets={targets}
+          players={players}
+          currentPlayer={currentPlayer}
+          round={round}
+          showMarks={isCricket}
+        />
       </div>
 
       <div className="flex items-center justify-center gap-3" role="status">
@@ -77,7 +95,13 @@ export function GolfGame({
           Trou {round + 1} / {targets.length}
         </span>
         <span className="font-display text-4xl font-bold leading-none tabular-nums text-cream">{target}</span>
-        <span className="text-sm text-muted">Par {PAR_PER_HOLE}</span>
+        {isCricket ? (
+          <span className="text-sm text-muted">
+            {player.holeDarts} fléchette{player.holeDarts > 1 ? 's' : ''}
+          </span>
+        ) : (
+          <span className="text-sm text-muted">Par {PAR_PER_HOLE}</span>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
@@ -96,10 +120,10 @@ export function GolfGame({
           );
         })}
         <div
-          aria-label={preview === null ? 'Trou en cours' : `Coup provisoire : ${preview}`}
+          aria-label={chipAria}
           className={`flex h-12 min-w-16 items-center justify-center rounded-xl px-2 font-display text-xl font-bold tabular-nums ${chipTone}`}
         >
-          {preview === null ? '—' : preview}
+          {chipLabel}
         </div>
       </div>
 

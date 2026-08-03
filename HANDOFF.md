@@ -6,18 +6,19 @@ Claude sur iPhone, Codespaces, github.dev…). Le code fait foi : tout est commi
 ## État actuel
 
 Compteur de fléchettes PWA (React 19 + TS + Vite + Tailwind v4 + Zustand),
-mobile-first, hors-ligne. **7 modes** : 301/501, Around the Clock, Cricket,
-Shanghai, Golf, Golf Cricket, Killer. Voir [README.md](README.md) pour
-l'architecture détaillée.
+mobile-first, hors-ligne. **6 modes** : 301/501, Around the Clock, Cricket,
+Shanghai, Golf (dont variante Cricket), Killer. Voir [README.md](README.md)
+pour l'architecture détaillée.
 
 Réalisé récemment :
 - **Déploiement PWA sur GitHub Pages** (`.github/workflows/deploy.yml`, build
   auto sur push `main`) — dépôt rendu public pour que Pages soit gratuit :
   https://rorox34.github.io/Oche/
-- **Golf Cricket** (`src/core/golfCricket/`, `src/modes/golfCricket/`) : fermez
-  chaque trou en 3 marques (simple=1, double=2, triple=3), tout le monde
-  attend avant le trou suivant, chaque fléchette (touchée ou manquée) compte
-  un coup — le plus rapide gagne.
+- **Golf, variante Cricket** (`src/core/golf/`, 3e option du Segmented
+  Score) : fermez chaque trou en 3 marques (simple=1, double=2, triple=3),
+  tout le monde attend avant le trou suivant, chaque fléchette (touchée ou
+  manquée) compte un coup — le plus rapide gagne. D'abord fait en mode séparé,
+  puis rapatrié comme 3e variante du mode Golf existant (option produit).
 - Les modes de jeu (cœurs purs testés dans `tests/`, un fichier par mode).
 - **Statistiques par joueur** : profils mémorisés, suggestions de noms triées par
   usage, écran dédié (`store/profiles.ts`, `screens/StatsScreen.tsx`).
@@ -40,7 +41,6 @@ node --experimental-strip-types tests/atc.test.mjs
 node --experimental-strip-types tests/cricket.test.mjs
 node --experimental-strip-types tests/shanghai.test.mjs
 node --experimental-strip-types tests/golf.test.mjs
-node --experimental-strip-types tests/golfCricket.test.mjs
 node --experimental-strip-types tests/killer.test.mjs
 node --experimental-strip-types tests/profiles.test.mjs
 ```
