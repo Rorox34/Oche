@@ -1,14 +1,16 @@
 # Oche — Compteur de fléchettes (PWA)
 
-Compteur de fléchettes mobile-first. Six modes : **301 / 501** (règles
+Compteur de fléchettes mobile-first. Sept modes : **301 / 501** (règles
 d'entrée/sortie complètes, suggestions de finish, clavier intelligent),
 **Around the Clock** (variantes de segments, ordres dont l'ordre réel du
 plateau, bull final, multi-touches, chrono), **Cricket** (Standard, Cut-Throat,
 Sans points), **Shanghai** (manches 1→7/10/20, ordre croissant ou aléatoire,
 victoire Shanghai S+D+T), **Golf** (9 ou 18 trous, scoring Standard, Au plus
 court ou Cricket — fermez chaque trou en 3 marques, tout le monde attend avant
-le trou suivant) et **Killer** (vies configurables, entrée Bull/Double/Prison,
-soin sur élimination). Options accessibles partout via l'engrenage en en-tête.
+le trou suivant), **Steeplechase** (course 1→20 + Bull, les haies se
+franchissent en simple/double/triple, une volée blanche fait chuter) et
+**Killer** (vies configurables, entrée Bull/Double/Prison, soin sur
+élimination). Options accessibles partout via l'engrenage en en-tête.
 **Statistiques par joueur** (profils mémorisés, suggestions de noms, écran dédié).
 Thèmes, historique coulissant, statistiques en direct, écran de victoire, undo
 illimité, partie persistée hors-ligne.
@@ -30,6 +32,7 @@ node --experimental-strip-types tests/atc.test.mjs      # moteur Around the Cloc
 node --experimental-strip-types tests/cricket.test.mjs  # moteur Cricket
 node --experimental-strip-types tests/shanghai.test.mjs # moteur Shanghai
 node --experimental-strip-types tests/golf.test.mjs     # moteur Golf (Standard, Au plus court, Cricket)
+node --experimental-strip-types tests/steeplechase.test.mjs # moteur Steeplechase
 node --experimental-strip-types tests/killer.test.mjs   # moteur Killer
 ```
 
@@ -80,6 +83,11 @@ src/
 │   │   ├── engine.ts  #   réducteur : trous, rotation, score relatif au par ;
 │   │   │              #   volée variable + attente des joueurs pour Cricket
 │   │   └── format.ts  #   libellés des variantes et score relatif
+│   ├── steeplechase/  # Moteur Steeplechase (pur, indépendant) :
+│   │   ├── targets.ts #   parcours : haies 1→20 (+ Bull)
+│   │   ├── rules.ts   #   hurdlesFor (haies franchies par fléchette), recommandations
+│   │   ├── engine.ts  #   réducteur : franchissement, chute (volée blanche), victoire
+│   │   └── format.ts  #   libellés du parcours et des haies
 │   └── killer/        # Moteur Killer (pur, indépendant) :
 │       ├── rules.ts   #   statuts, recommandations (numéros adverses)
 │       ├── engine.ts  #   réducteur : entrée, attaque, prison, élimination
@@ -92,6 +100,7 @@ src/
 │   ├── cricket/       # Écrans Cricket (Setup, Game, Board)
 │   ├── shanghai/      # Écrans Shanghai (Setup, Game, PlayerCard)
 │   ├── golf/          # Écrans Golf (Setup, Game, Scorecard)
+│   ├── steeplechase/  # Écrans Steeplechase (Setup, Game, PlayerCard)
 │   └── killer/        # Écrans Killer (Setup, Game, PlayerCard)
 ├── components/        # Partagé : DartKeypad, DartBadge, HistoryDrawer,
 │                      #   VictoryOverlay, PlayerNamesField, Stepper, ThemeSlider…
@@ -197,6 +206,31 @@ La carte de parcours code les coups en couleur (eagle / birdie / par / bogey)
 dans les trois variantes, et affiche en plus la progression des marques
 (`x/3`) sur le trou en cours en variante Cricket.
 
+## Steeplechase
+
+Une course façon Around the Clock, mais avec l'esprit steeple : le parcours
+est la suite **1 → 20** (puis le **Bull** si activé), et chaque numéro est une
+**haie**. Le premier à franchir toutes les haies gagne.
+
+| Fléchette | Effet |
+|---|---|
+| Simple sur la haie visée | Franchit 1 haie (foulée normale) |
+| Double sur la haie visée | Franchit 2 haies d'un coup (belle foulée) |
+| Triple sur la haie visée | Franchit 3 haies d'un coup (grand saut) |
+| Volée de 3 fléchettes sans toucher la haie visée | **Chute** : recul d'1 haie (jamais sous la 1re) |
+
+| Réglage | Options |
+|---|---|
+| **Ligne d'arrivée** | Avec Bull (21 haies) · Sans Bull (20 haies) |
+
+Le franchissement se calcule dans [`hurdlesFor`](src/core/steeplechase/rules.ts)
+(`multiplier` de la fléchette = nombre de haies franchies, plafonné à ce qu'il
+reste de parcours). La chute est gérée dans le réducteur
+([`engine.ts`](src/core/steeplechase/engine.ts)) : si une volée complète
+(3 fléchettes) n'a fait progresser le joueur d'aucune haie, il recule d'une
+haie. Contrairement à Around the Clock, il n'y a ni variante de segments ni
+ordre alternatif : le tracé fixe 1 → 20 fait partie du concept de course.
+
 ## Killer
 
 Jeu d'élimination. Chaque joueur reçoit un **numéro** (tiré au lancement) et des
@@ -226,7 +260,7 @@ sortie, retrait de vies, élimination…) sont structurés et mis en forme dans
 
 ## Ajouter un mode de jeu
 
-Les modes Cricket, Shanghai, Golf et Killer ci-dessus illustrent concrètement cette recette :
+Les modes Cricket, Shanghai, Golf, Steeplechase et Killer ci-dessus illustrent concrètement cette recette :
 
 1. Créer `src/modes/<mode>/` avec un état, un réducteur pur et deux écrans.
 2. Exporter un `GameModeDefinition` (`createGame`, `reduce`, `SetupScreen`, `GameScreen`).
@@ -255,7 +289,7 @@ réversibles, `suggestNames`).
 - **Sets** : `legsToWin` existe déjà ; les sets sont un niveau au-dessus
   (compteur `setsWon` + condition de fin dans `engine.ts`), sans impact UI majeur.
 - **High Score / Gotcha / Halve It** : nouveaux dossiers sous `modes/` via le
-  contrat `GameModeDefinition` — les six modes existants servent de modèles
+  contrat `GameModeDefinition` — les sept modes existants servent de modèles
   (cibles/manches/trous générés, variantes centralisées, état par joueur).
 - **Statistiques avancées par mode** : les profils agrègent déjà parties et
   victoires par mode — on peut y stocker moyennes (X01), MPR (Cricket), score

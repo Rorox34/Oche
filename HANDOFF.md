@@ -6,11 +6,17 @@ Claude sur iPhone, Codespaces, github.dev…). Le code fait foi : tout est commi
 ## État actuel
 
 Compteur de fléchettes PWA (React 19 + TS + Vite + Tailwind v4 + Zustand),
-mobile-first, hors-ligne. **6 modes** : 301/501, Around the Clock, Cricket,
-Shanghai, Golf (dont variante Cricket), Killer. Voir [README.md](README.md)
-pour l'architecture détaillée.
+mobile-first, hors-ligne. **7 modes** : 301/501, Around the Clock, Cricket,
+Shanghai, Golf (dont variante Cricket), Steeplechase, Killer. Voir
+[README.md](README.md) pour l'architecture détaillée.
 
 Réalisé récemment :
+- **Steeplechase** (`src/core/steeplechase/`, `src/modes/steeplechase/`) :
+  course 1 → 20 (+ Bull en option) où chaque numéro est une haie — simple = 1
+  haie franchie, double = 2, triple = 3, mais une volée de 3 fléchettes sans
+  aucune touche fait **chuter** le joueur d'une haie en arrière. Règles
+  inventées pour l'occasion (pas de norme officielle unique pour ce jeu de
+  pub), à ajuster si l'esprit voulu diffère.
 - **Déploiement PWA sur GitHub Pages** (`.github/workflows/deploy.yml`, build
   auto sur push `main`) — dépôt rendu public pour que Pages soit gratuit :
   https://rorox34.github.io/Oche/
@@ -41,6 +47,7 @@ node --experimental-strip-types tests/atc.test.mjs
 node --experimental-strip-types tests/cricket.test.mjs
 node --experimental-strip-types tests/shanghai.test.mjs
 node --experimental-strip-types tests/golf.test.mjs
+node --experimental-strip-types tests/steeplechase.test.mjs
 node --experimental-strip-types tests/killer.test.mjs
 node --experimental-strip-types tests/profiles.test.mjs
 ```
