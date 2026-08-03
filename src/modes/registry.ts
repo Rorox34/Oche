@@ -4,6 +4,7 @@ import { atcMode } from './atc';
 import { cricketMode } from './cricket';
 import { shanghaiMode } from './shanghai';
 import { golfMode } from './golf';
+import { steeplechaseMode } from './steeplechase';
 import { killerMode } from './killer';
 
 /**
@@ -20,6 +21,7 @@ export const gameModes: AnyGameMode[] = [
   cricketMode,
   shanghaiMode,
   golfMode,
+  steeplechaseMode,
   killerMode,
 ];
 
