@@ -6,11 +6,19 @@ Claude sur iPhone, Codespaces, github.dev…). Le code fait foi : tout est commi
 ## État actuel
 
 Compteur de fléchettes PWA (React 19 + TS + Vite + Tailwind v4 + Zustand),
-mobile-first, hors-ligne. **6 modes** : 301/501, Around the Clock, Cricket,
-Shanghai, Golf, Killer. Voir [README.md](README.md) pour l'architecture détaillée.
+mobile-first, hors-ligne. **7 modes** : 301/501, Around the Clock, Cricket,
+Shanghai, Golf, Golf Cricket, Killer. Voir [README.md](README.md) pour
+l'architecture détaillée.
 
 Réalisé récemment :
-- Les 6 modes de jeu (cœurs purs testés dans `tests/`, un fichier par mode).
+- **Déploiement PWA sur GitHub Pages** (`.github/workflows/deploy.yml`, build
+  auto sur push `main`) — dépôt rendu public pour que Pages soit gratuit :
+  https://rorox34.github.io/Oche/
+- **Golf Cricket** (`src/core/golfCricket/`, `src/modes/golfCricket/`) : fermez
+  chaque trou en 3 marques (simple=1, double=2, triple=3), tout le monde
+  attend avant le trou suivant, chaque fléchette (touchée ou manquée) compte
+  un coup — le plus rapide gagne.
+- Les modes de jeu (cœurs purs testés dans `tests/`, un fichier par mode).
 - **Statistiques par joueur** : profils mémorisés, suggestions de noms triées par
   usage, écran dédié (`store/profiles.ts`, `screens/StatsScreen.tsx`).
 - **Accueil = menu** (Nouvelle partie / Options / Statistiques / Crédits) +
@@ -32,6 +40,7 @@ node --experimental-strip-types tests/atc.test.mjs
 node --experimental-strip-types tests/cricket.test.mjs
 node --experimental-strip-types tests/shanghai.test.mjs
 node --experimental-strip-types tests/golf.test.mjs
+node --experimental-strip-types tests/golfCricket.test.mjs
 node --experimental-strip-types tests/killer.test.mjs
 node --experimental-strip-types tests/profiles.test.mjs
 ```
@@ -41,9 +50,6 @@ Ajouter un mode = 1 dossier `src/core/<mode>/` + 1 dossier `src/modes/<mode>/`
 
 ## Pistes discutées pour la suite
 
-- **Déployer** en PWA (GitHub Pages, gratuit) pour l'installer sur l'écran
-  d'accueil sans dépendre d'un PC (workflow + `base` Vite à ajouter, puis activer
-  Pages dans les réglages du dépôt).
 - **Étoffer le menu Options** (son, vibration, langue, format de match…).
 - **Statistiques avancées par mode** (moyenne X01, MPR Cricket, meilleur score
   Golf…) en enrichissant le `GameResult` retourné par `getResult`.
