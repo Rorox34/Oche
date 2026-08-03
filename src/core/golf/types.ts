@@ -3,7 +3,7 @@ import type { Dart } from '../darts.ts';
 export type { Dart, Multiplier } from '../darts.ts';
 
 /** Méthode de score d'un trou. Toute la logique est centralisée dans VARIANTS. */
-export type GolfVariant = 'standard' | 'darts';
+export type GolfVariant = 'standard' | 'darts' | 'cricket';
 
 /** Nombre de trous (= numéros joués, 1…N). */
 export type GolfHoles = 9 | 18;
@@ -21,6 +21,10 @@ export interface GolfPlayer {
   /** Total des coups (somme des trous joués). */
   strokes: number;
   dartsThrown: number;
+  /** Variante Cricket uniquement : marques (0–3) accumulées sur le trou courant. */
+  holeMarks: number;
+  /** Variante Cricket uniquement : fléchettes déjà lancées sur le trou courant. */
+  holeDarts: number;
 }
 
 export type GolfPhase = 'playing' | 'matchOver';
@@ -30,8 +34,8 @@ export interface GolfLogEntry {
   /** Numéro du trou joué. */
   hole: number;
   darts: Dart[];
-  /** Coups marqués sur ce trou. */
-  strokes: number;
+  /** Coups marqués sur ce trou, ou null (variante Cricket : trou pas encore fermé sur cette volée). */
+  strokes: number | null;
 }
 
 export interface GolfState {

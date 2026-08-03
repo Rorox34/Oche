@@ -6,15 +6,22 @@ export const MISS_STROKES = 4;
 /** Par d'un trou (référence pour le score relatif). */
 export const PAR_PER_HOLE = 3;
 
+/** Marques nécessaires pour fermer un trou en variante Cricket. */
+export const MARKS_TO_CLOSE = 3;
+
 /**
- * Spécification d'une variante de score. C'est le **seul** endroit à compléter
- * pour ajouter une façon de scorer un trou — moteur et UI s'en servent tels quels.
+ * Spécification d'une variante de score. Pour Standard/Au plus court, c'est le
+ * **seul** endroit à compléter pour ajouter une façon de scorer une volée fixe
+ * de 3 fléchettes — moteur et UI s'en servent tels quels. La variante Cricket
+ * n'a pas de `holeScore` : elle se joue en volées de longueur variable
+ * (fermeture par marques, attente des autres joueurs), gérée à part dans
+ * `engine.ts`.
  */
 export interface GolfVariantSpec {
   label: string;
   description: string;
-  /** Coups marqués sur le trou à partir des (≤3) fléchettes visant `target`. */
-  holeScore(visit: Dart[], target: number): number;
+  /** Coups marqués sur le trou à partir des (≤3) fléchettes visant `target`. Absent pour Cricket. */
+  holeScore?(visit: Dart[], target: number): number;
 }
 
 export const VARIANTS: Record<GolfVariant, GolfVariantSpec> = {
@@ -40,20 +47,35 @@ export const VARIANTS: Record<GolfVariant, GolfVariantSpec> = {
       return idx === -1 ? MISS_STROKES : idx + 1;
     },
   },
+
+  cricket: {
+    label: 'Cricket',
+    description:
+      'Fermez le trou en 3 marques (simple = 1, double = 2, triple = 3 — ferme d’un coup) ; ' +
+      'chaque fléchette compte un coup et on attend que tous les joueurs aient fermé avant le trou suivant.',
+  },
 };
+
+/** Marques rapportées par une fléchette sur le trou visé (variante Cricket, 0 si hors cible). */
+export function marksFor(dart: Dart, target: number): number {
+  return dart.value === target ? dart.multiplier : 0;
+}
 
 /**
  * Score provisoire affiché pendant la volée : le coup acquis si au moins une
  * fléchette a touché, sinon `null` (on n'affiche pas la pénalité de manqué tant
- * qu'il reste des fléchettes à lancer).
+ * qu'il reste des fléchettes à lancer). Non applicable en Cricket (voir
+ * `player.holeMarks`, suivi en direct dans l'état) : renvoie toujours `null`.
  */
 export function previewHoleScore(
   visit: Dart[],
   target: number,
   variant: GolfVariant,
 ): number | null {
+  const holeScore = VARIANTS[variant].holeScore;
+  if (!holeScore) return null;
   if (!visit.some((d) => d.value === target)) return null;
-  return VARIANTS[variant].holeScore(visit, target);
+  return holeScore(visit, target);
 }
 
 /**

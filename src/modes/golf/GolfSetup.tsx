@@ -53,6 +53,7 @@ export function GolfSetup({ onStart, onBack }: SetupScreenProps<GolfConfig>) {
           options={[
             { value: 'standard', label: 'Standard' },
             { value: 'darts', label: 'Au plus court' },
+            { value: 'cricket', label: 'Cricket' },
           ]}
         />
         <p className="text-xs text-muted">{VARIANTS[variant].description}</p>
