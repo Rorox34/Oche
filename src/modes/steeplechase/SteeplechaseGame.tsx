@@ -6,6 +6,7 @@ import { recommendedDarts } from '../../core/steeplechase/rules';
 import { formatConfig, formatConfigShort, formatTarget } from '../../core/steeplechase/format';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../../components/Button';
+import { CollapsibleKeypad } from '../../components/CollapsibleKeypad';
 import { DartKeypad } from '../../components/DartKeypad';
 import { DartBadge } from '../../components/DartBadge';
 import { HistoryDrawer, HistoryButton, type HistoryViewEntry } from '../../components/HistoryDrawer';
@@ -119,12 +120,14 @@ export function SteeplechaseGame({
       </div>
 
       <div className="mt-auto">
-        <DartKeypad
-          onDart={(dart) => dispatch({ type: 'dart', dart })}
-          undo={undo}
-          canUndo={canUndo}
-          recommended={recommended}
-        />
+        <CollapsibleKeypad>
+          <DartKeypad
+            onDart={(dart) => dispatch({ type: 'dart', dart })}
+            undo={undo}
+            canUndo={canUndo}
+            recommended={recommended}
+          />
+        </CollapsibleKeypad>
       </div>
 
       <HistoryDrawer entries={historyEntries} open={historyOpen} onClose={() => setHistoryOpen(false)} />

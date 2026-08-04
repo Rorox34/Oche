@@ -6,6 +6,7 @@ import { recommendedDarts } from '../../core/atc/rules';
 import { formatDuration, formatTarget, formatVariant, formatVariantShort } from '../../core/atc/format';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../../components/Button';
+import { CollapsibleKeypad } from '../../components/CollapsibleKeypad';
 import { DartKeypad } from '../../components/DartKeypad';
 import { DartBadge } from '../../components/DartBadge';
 import { HistoryDrawer, HistoryButton, type HistoryViewEntry } from '../../components/HistoryDrawer';
@@ -141,12 +142,14 @@ export function AtcGame({
       </div>
 
       <div className="mt-auto">
-        <DartKeypad
-          onDart={(dart) => dispatch({ type: 'dart', dart })}
-          undo={undo}
-          canUndo={canUndo}
-          recommended={recommended}
-        />
+        <CollapsibleKeypad>
+          <DartKeypad
+            onDart={(dart) => dispatch({ type: 'dart', dart })}
+            undo={undo}
+            canUndo={canUndo}
+            recommended={recommended}
+          />
+        </CollapsibleKeypad>
       </div>
 
       <HistoryDrawer
