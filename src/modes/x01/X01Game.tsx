@@ -7,6 +7,7 @@ import { checkoutRoutes } from '../../core/x01/checkout';
 import { formatRules, formatRulesShort } from '../../core/x01/format';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../../components/Button';
+import { CollapsibleKeypad } from '../../components/CollapsibleKeypad';
 import { DartKeypad } from '../../components/DartKeypad';
 import { DartBadge } from '../../components/DartBadge';
 import { HistoryDrawer, HistoryButton, type HistoryViewEntry } from '../../components/HistoryDrawer';
@@ -132,12 +133,14 @@ export function X01Game({
       />
 
       <div className="mt-auto">
-        <DartKeypad
-          onDart={(dart) => dispatch({ type: 'dart', dart })}
-          undo={undo}
-          canUndo={canUndo}
-          recommended={recommended}
-        />
+        <CollapsibleKeypad>
+          <DartKeypad
+            onDart={(dart) => dispatch({ type: 'dart', dart })}
+            undo={undo}
+            canUndo={canUndo}
+            recommended={recommended}
+          />
+        </CollapsibleKeypad>
       </div>
 
       <HistoryDrawer

@@ -6,6 +6,7 @@ import { visitLivesTaken } from '../../core/killer/engine';
 import { formatEvent, formatVariant, formatVariantShort } from '../../core/killer/format';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../../components/Button';
+import { CollapsibleKeypad } from '../../components/CollapsibleKeypad';
 import { KillerKeypad } from '../../components/KillerKeypad';
 import { DartBadge } from '../../components/DartBadge';
 import { HistoryDrawer, HistoryButton, type HistoryViewEntry } from '../../components/HistoryDrawer';
@@ -148,28 +149,30 @@ export function KillerGame({
       )}
 
       <div>
-        {assigning ? (
-          <KillerKeypad
-            onDart={(dart) => dispatch({ type: 'dart', dart })}
-            undo={undo}
-            canUndo={canUndo}
-            numbers={Array.from({ length: 20 }, (_, i) => i + 1)}
-            disabledNumbers={takenNumbers}
-            showMultipliers={false}
-            showMiss={false}
-            showBull={false}
-          />
-        ) : (
-          <KillerKeypad
-            onDart={(dart) => dispatch({ type: 'dart', dart })}
-            undo={undo}
-            canUndo={canUndo}
-            numbers={aliveNumbers}
-            showMultipliers
-            showBull={showBull}
-            recommended={recommended}
-          />
-        )}
+        <CollapsibleKeypad>
+          {assigning ? (
+            <KillerKeypad
+              onDart={(dart) => dispatch({ type: 'dart', dart })}
+              undo={undo}
+              canUndo={canUndo}
+              numbers={Array.from({ length: 20 }, (_, i) => i + 1)}
+              disabledNumbers={takenNumbers}
+              showMultipliers={false}
+              showMiss={false}
+              showBull={false}
+            />
+          ) : (
+            <KillerKeypad
+              onDart={(dart) => dispatch({ type: 'dart', dart })}
+              undo={undo}
+              canUndo={canUndo}
+              numbers={aliveNumbers}
+              showMultipliers
+              showBull={showBull}
+              recommended={recommended}
+            />
+          )}
+        </CollapsibleKeypad>
       </div>
 
       <HistoryDrawer

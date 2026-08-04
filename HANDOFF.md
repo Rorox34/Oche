@@ -11,6 +11,12 @@ Shanghai, Golf (dont variante Cricket), Steeplechase, Killer. Voir
 [README.md](README.md) pour l'architecture détaillée.
 
 Réalisé récemment :
+- **Clavier de saisie repliable** (`components/CollapsibleKeypad.tsx`) :
+  retour terrain sur mobile — le clavier (DartKeypad/KillerKeypad) prenait
+  trop de place et cachait le tableau de scores (testé sur Cricket). Ajout
+  d'une poignée pour le replier et laisser le tableau prendre tout l'écran ;
+  ouvert par défaut à chaque partie (état non persisté, volontairement).
+  Appliqué aux 7 modes (composant partagé, pas de duplication).
 - **Steeplechase** (`src/core/steeplechase/`, `src/modes/steeplechase/`) :
   course 1 → 20 (+ Bull en option) où chaque numéro est une haie — simple = 1
   haie franchie, double = 2, triple = 3, mais une volée de 3 fléchettes sans

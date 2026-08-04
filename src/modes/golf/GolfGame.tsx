@@ -6,6 +6,7 @@ import { MARKS_TO_CLOSE, PAR_PER_HOLE, previewHoleScore, recommendedDarts } from
 import { formatRelativePar, formatVariant, formatVariantShort } from '../../core/golf/format';
 import { useAppStore } from '../../store/appStore';
 import { Button } from '../../components/Button';
+import { CollapsibleKeypad } from '../../components/CollapsibleKeypad';
 import { DartKeypad } from '../../components/DartKeypad';
 import { DartBadge } from '../../components/DartBadge';
 import { HistoryDrawer, HistoryButton, type HistoryViewEntry } from '../../components/HistoryDrawer';
@@ -128,12 +129,14 @@ export function GolfGame({
       </div>
 
       <div>
-        <DartKeypad
-          onDart={(dart) => dispatch({ type: 'dart', dart })}
-          undo={undo}
-          canUndo={canUndo}
-          recommended={recommended}
-        />
+        <CollapsibleKeypad>
+          <DartKeypad
+            onDart={(dart) => dispatch({ type: 'dart', dart })}
+            undo={undo}
+            canUndo={canUndo}
+            recommended={recommended}
+          />
+        </CollapsibleKeypad>
       </div>
 
       <HistoryDrawer

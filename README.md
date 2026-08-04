@@ -102,8 +102,9 @@ src/
 │   ├── golf/          # Écrans Golf (Setup, Game, Scorecard)
 │   ├── steeplechase/  # Écrans Steeplechase (Setup, Game, PlayerCard)
 │   └── killer/        # Écrans Killer (Setup, Game, PlayerCard)
-├── components/        # Partagé : DartKeypad, DartBadge, HistoryDrawer,
-│                      #   VictoryOverlay, PlayerNamesField, Stepper, ThemeSlider…
+├── components/        # Partagé : DartKeypad, CollapsibleKeypad, DartBadge,
+│                      #   HistoryDrawer, VictoryOverlay, PlayerNamesField,
+│                      #   Stepper, ThemeSlider…
 ├── store/
 │   ├── appStore.ts    # Zustand persist : navigation, partie, undo, réglages, profils
 │   └── profiles.ts    # Logique pure des statistiques (enregistrement réversible)
@@ -302,6 +303,11 @@ réversibles, `suggestNames`).
 - **Thème** : Dark Classic, Light Professional, Tournament Color (accueil).
 - **Clavier intelligent** : surbrillance des meilleures fléchettes à
   l'approche d'un checkout — désactivable (accueil).
+- **Clavier repliable** : une poignée au-dessus du clavier de saisie permet de
+  le masquer pour laisser le tableau de scores prendre tout l'écran (utile sur
+  petit mobile) ; ouvert par défaut à chaque partie
+  ([`CollapsibleKeypad`](src/components/CollapsibleKeypad.tsx), commun à tous
+  les modes).
 
 Note de migration : les sauvegardes de l'ancienne version (double out booléen)
 sont réinitialisées proprement au premier lancement de cette version.
